@@ -1,0 +1,17 @@
+{
+  "name": "book-lending-server",
+  "version": "1.0.0",
+  "description": "שרת למערכת השאלת ספרים",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Aviv Ben-Amar",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "pio": "^0.6.1"
+  }
+}
