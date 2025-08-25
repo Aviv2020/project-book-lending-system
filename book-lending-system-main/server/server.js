@@ -1,12 +1,23 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');   // ⬅️ חדש
 const app = express();
 const apiRoutes = require('./routes/api');
+require('dotenv').config({ path: path.join(__dirname, '../access.env') });
 
 console.log('🔁 התחלת server.js');
 
-app.use(express.json({ limit: '200mb' }));
-app.use(express.urlencoded({ extended: true, limit: '200mb' }));
+// חיבור ל־MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ Connected to MongoDB Atlas"))
+.catch(err => console.error("❌ DB Connection Error:", err));
+
+// אפשר לקבוע גבול גבוה מאוד, אך לא להסיר אותו לגמרי
+app.use(express.json({ limit: '1gb' }));
+app.use(express.urlencoded({ extended: true, limit: '1gb' }));
 console.log('✅ JSON body limit set');
 
 // הגשת קבצים סטטיים מהתיקייה public
@@ -17,5 +28,5 @@ app.use('/api', apiRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
-console.log("🚀 השרת פעיל על http://localhost:${PORT}/");
+  console.log(`🚀 השרת פעיל על http://localhost:${PORT}/`);
 });
