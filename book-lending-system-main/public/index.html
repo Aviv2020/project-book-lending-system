@@ -1079,26 +1079,17 @@ Violations may result in civil and/or criminal liability</b>
 <script>
   const socket = io("http://localhost:3000");
 
-const entities = [
-  "students",
-  "books",
-  "borrowed",
-  "returned",
-  "charges",
-  "volunteers",
-  "clusters"
-];
-
-// מאזינים לכל סוגי השינויים
-entities.forEach(entity => {
-  socket.on(`${entity}Changed`, (data) => {
-    console.log(`📢 ${entity} changed – refreshing`, data);
-
-    refreshData();
-    // פונקציית רענון לפי ס
+  socket.on("borrowedChanged", (data) => {
+    console.log("🔄 Borrowed changed:", data);
+    renderBookTable();
+    renderStudentTable();
   });
-});
 
+  socket.on("returnedChanged", (data) => {
+    console.log("🔄 Returned changed:", data);
+    renderBookTable();
+    renderStudentTable();
+  });
 </script>
 
 </html>

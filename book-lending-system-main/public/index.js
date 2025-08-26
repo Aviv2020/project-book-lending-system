@@ -2516,20 +2516,6 @@ async function addStudent() {
   document.getElementById('addNote').value = '';
 }
 
-async function refreshData() {
-  students = await fetch(`/api/${currentYear}/students`).then(r => r.json());
-  books    = await fetch(`/api/${currentYear}/books`).then(r => r.json());
-  borrowed = await fetch(`/api/${currentYear}/borrowed`).then(r => r.json());
-  returned = await fetch(`/api/${currentYear}/returned`).then(r => r.json());
-  charges  = await fetch(`/api/${currentYear}/charges`).then(r => r.json());
-  volunteers = await fetch(`/api/${currentYear}/volunteers`).then(r => r.json());
-  clusters   = await fetch(`/api/${currentYear}/clusters`).then(r => r.json());
-
-  renderStudentTable();
-  renderBookTable();
-  renderVolunteerTable?.();
-  renderClusterTable?.();
-}
 
 
 function generateRandomIsraeliID() {

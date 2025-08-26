@@ -46,23 +46,20 @@ io.on('connection', (socket) => {
 });
 
 // === Mongo Change Streams (Borrowed + Returned) ===
-const collections = {
-  students: require('./models/Student'),
-  books: require('./models/Book'),
-  borrowed: require('./models/Borrowed'),
-  returned: require('./models/Returned'),
-  charges: require('./models/Charge'),
-  volunteers: require('./models/Volunteer'),
-  clusters: require('./models/Cluster')
-};
+const Borrowed = require('./models/Borrowed');
+const Returned = require('./models/Returned');
 
-Object.entries(collections).forEach(([name, Model]) => {
-  Model.watch().on("change", (change) => {
-    console.log(`📢 ${name} changed:`, change);
-    io.emit(`${name}Changed`, change); // שולח לכל הלקוחות
-  });
+// מאזין לשינויים ב־Borrowed
+Borrowed.watch().on('change', (change) => {
+  console.log('📢 Borrowed changed:', change);
+  io.emit('borrowedChanged', change);
 });
 
+// מאזין לשינויים ב־Returned
+Returned.watch().on('change', (change) => {
+  console.log('📢 Returned changed:', change);
+  io.emit('returnedChanged', change);
+});
 
 const PORT = 3000;
 server.listen(PORT, () => {
