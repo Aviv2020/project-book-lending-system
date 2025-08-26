@@ -4352,6 +4352,7 @@ const input = document.getElementById('gradeTagsInput');
   }
 
 async function returnBook() {
+  loading = document.getElementById('globalLoading');
   loading.style.display = 'flex';
   const selectedPairs = Array.from(document.querySelectorAll('#returnBooksSelect input[type="checkbox"]:checked'))
     .map(cb => cb.value.split('|'))
