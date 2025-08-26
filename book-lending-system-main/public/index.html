@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+
+  <meta charset="UTF-8">
+  <title>📘 מערכת השאלת ספרים - קציר</title>
+<link rel="stylesheet" href="index.css">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+</head>
+<body>
+
+
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+  <h1 id="yearHeader">📘 מערכת השאלת ספרים - קציר רחובות - שנה: <span id="currentYearDisplay"></span></h1>
+<input
+  type="number"
+  min="2026"
+  id="yearSelect"
+  style="
+    width: 80px;
+    height: 24px;
+    cursor: pointer;
+    vertical-align: middle;
+    background: transparent;
+    margin-left: 10px;
+    margin-top: 4px;
+    display: inline-block;
+    font-size: 12px;
+  "
+  oninput="
+    this.style.background = 'linear-gradient(to right, #007bff 0%, #007bff ' + 
+    ((this.value - this.min) / (this.max - this.min)) * 100 + '%, #ccc ' +
+    ((this.value - this.min) / (this.max - this.min)) * 100 + '%, #ccc 100%)';
+  "
+  onchange="
+    this.dispatchEvent(new Event('input'));
+  "
+><button id="toggleDarkModeBtn" style="position: fixed; bottom: 20px; left: 20px; z-index: 10000;">
+  🌙 מצב כהה
+</button>
+</header>
+
+<div id="loadingOverlay" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 40vh;
+  z-index: 9999;
+">טוען...</div>
+
+<div id="editStudentModal" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+">
+
+  <div style="
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    direction: rtl;
+  ">
+
+    <h3 style="margin-top: 0;">עריכת פרטי תלמיד</h3>
+
+    <label style="display: block; margin-bottom: 10px;">
+      שם מלא<br>
+      <input id="editStudentName" type="text" style="width: 100%;">
+    </label>
+
+<div style="margin-bottom: 10px;">
+  <label for="editStudentID">תעודת זהות</label>
+  <div style="display: flex; align-items: center; gap: 8px; direction: ltr;">
+    <input id="editStudentID" type="text" disabled style="flex: 1; min-width: 0;">
+    <button type="button" onclick="generateRandomIsraeliID()" title="הגרל תעודת זהות" style="padding: 4px 8px; font-size: 16px;">
+      🎲
+    </button>
+  </div>
+</div>
+
+
+
+    <label style="display: block; margin-bottom: 10px;">
+      בית ספר<br>
+      <select id="editStudentSchool" style="width: 100%;">
+        <option value="קציר א">קציר א</option>
+        <option value="קציר ב">קציר ב</option>
+        <option value="תיכון">תיכון</option>
+      </select>
+    </label>
+
+    <label style="display: block; margin-bottom: 10px;">
+      כיתה<br>
+      <input id="editStudentClass" type="text" style="width: 100%;">
+    </label>
+
+
+    <label style="display: block; margin-bottom: 10px;">
+      משתתף בפרויקט השאלת ספרים:<br>
+      <select id="editStudentInLoanProject" style="width: 100%;">
+        <option value="true">כן</option>
+        <option value="false">לא</option>
+      </select>
+    </label>
+
+    <label style="display: block; margin-bottom: 15px;">
+      הוספת הערות<br>
+      <input type="text" id="editNote" style="width: 100%;">
+    </label>
+
+    <div style="margin-top: 10px; text-align: left;">
+      <button onclick="saveEditedStudent()">💾 שמור</button>
+      <button onclick="closeEditStudentModal()">❌ בטל</button>
+    </div>
+  </div>
+</div>
+
+ <div class="tabs" role="tablist" aria-label="ניהול מערכת">
+    <button class="tab-button active" data-tab="studentsTab" role="tab" aria-selected="true" aria-controls="studentsTab">חיפוש תלמידים</button>
+    <button class="tab-button active" data-tab="studentsCreateTab" role="tab" aria-selected="true" aria-controls="studentsTab">הוספת תלמידים</button>
+    <button class="tab-button" data-tab="booksCreateTab" role="tab" aria-selected="false" aria-controls="booksTab">הוספת ספרים חדשים</button>
+    <button class="tab-button" data-tab="borrowTab" role="tab" aria-selected="false" aria-controls="borrowTab">ניהול השאלות ורכישות</button>
+    <button class="tab-button" data-tab="returnTab" role="tab" aria-selected="false" aria-controls="returnTab">ניהול החזרות וחיובים</button>
+    <button class="tab-button" data-tab="booksTab" role="tab" aria-selected="false" aria-controls="booksTab">ניהול מלאי ספרים</button>
+    <button class="tab-button" data-tab="clustersTab" role="tab" aria-selected="false" aria-controls="booksTab">ניהול סטים של ספרים</button>
+    <button class="tab-button" data-tab="volunteersTab" role="tab" aria-selected="false" aria-controls="volunteersTab">ניהול מתנדבים</button>
+
+  </div>
+
+<div id="successMsg"></div>
+<div id="confirmBorrowModal" style="display:none; position:fixed; top:0; right:0; bottom:0; left:0; background-color:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:500px; width:90%;">
+    <h3>📋 אישור השאלה</h3>
+    <ul id="borrowBookList" style="text-align:right; padding-right:20px;"></ul>
+
+    <label for="borrowerTypeSelect" style="display:block; margin-top:10px;">
+  מי משאיל?
+  <select id="borrowerTypeSelect" style="width: 100%; margin-top: 5px;">
+    <option value="student">תלמיד</option>
+    <option value="parent">הורה\חבר</option>
+    <option value="staff">בעל תפקיד</option>
+  </select>
+</label>
+
+<label for="borrowerNameInput" style="display:none; margin-top:10px;">
+  שם מלא (ל'הורה\חבר' ו'בעל תפקיד')
+  <input id="borrowerNameInput" type="text" style="width: 100%;" placeholder="הקלד שם מלא">
+</label>
+
+    <label style="display:block; margin-top:10px;">
+      <input type="checkbox" id="confirmBorrowCheckbox">
+      אני מאשר/ת שקיבלתי את כל ספרי הלימוד המצוינים לעיל, במצב תקין
+    </label>
+
+    <div style="margin-top:15px;">
+      <p style="margin-bottom:5px;">✍️ חתימה:</p>
+      <div id="signatureContainer">
+<canvas id="signaturePad"></canvas>
+      <button onclick="clearSignature()" style="margin-top:5px; background-color: red;">🧹 נקה חתימה</button>
+      </div>
+    </div>
+
+    <div style="margin-top:15px; text-align:left;">
+      <button onclick="finalizeBorrow()" style="margin-left:10px; background-color:lawngreen; color:black">✔️ אשר</button>
+      <button onclick="closeBorrowModal()">❌ בטל</button>
+    </div>
+  </div>
+</div>
+
+<div id="bulkLendModal" style="display:none; position:fixed; inset:0; background-color:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
+    <h3>📦 השאלה מרוכזת</h3>
+
+    <p>בחר ספרים להשאלה לכל התלמידים שברשימה:</p>
+
+    <input id="bulkSearchBookInput" placeholder="🔍 חפש לפי שם ספר" oninput="filterBulkBooks()">
+    <input id="bulkSubjectFilter" placeholder="🔍 סינון לפי מקצוע" oninput="filterBulkBooks()">
+    
+    <select id="bulkLevelFilter" onchange="filterBulkBooks()">
+      <option value="">רמת לימוד</option>
+      <option value="3 יחל">3 יח"ל</option>
+      <option value="4 יחל">4 יח"ל</option>
+      <option value="5 יחל">5 יח"ל</option>
+          <option value="הקבצה ב">הקבצה ב</option>
+    <option value="הקבצה א">הקבצה א</option>
+    <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+    <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+    </select>
+
+    <select id="bulkGradeFilter" onchange="filterBulkBooks()">
+      <option value="">שכבת גיל</option>
+      <option value="ז">ז</option>
+      <option value="ח">ח</option>
+      <option value="ט">ט</option>
+      <option value="י">י</option>
+      <option value="יא">יא</option>
+      <option value="יב">יב</option>
+    </select>
+
+    <div id="bulkBooksSelect" class="checkbox-list" style="margin: 10px 0;">
+
+    </div>
+
+    <div id="bulkBooksSelectOptions">
+      <button onclick="selectAllFilteredBulkBooks()">בחר את כל הספרים המוצגים</button>
+      <button onclick="selectedBulkBookIds.clear(); filterBulkBooks();">בטל את כל הבחירות</button>
+    </div>
+    <label><input type="checkbox" id="bulkConfirmCheckbox"> אני מאשר/ת השאלה מרוכזת בשם כל התלמידים</label>
+    
+    <p>✍️ חתימת בעל תפקיד:</p>
+    <div id="bulkSignatureContainer">
+    <canvas id="bulkSignaturePad" style="border:2px solid #007bff; background-color:#f0f8ff; width:100%; height:150px;"></canvas>
+    <button onclick="clearBulkSignature()">🧹 נקה חתימה</button>
+    </div>
+    <div style="text-align:left; margin-top:20px;">
+      <button onclick="confirmBulkLend()">✔️ אשר</button>
+      <button onclick="document.getElementById('bulkLendModal').style.display='none'">❌ בטל</button>
+    </div>
+  </div>
+</div>
+
+<!-- אזור ניהול תלמידים -->
+   <div id="studentsCreateTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="studentsTab">
+<div class="container">
+  <h2>➕ הוספת תלמיד</h2>
+  <label>שם מלא <input id="studentName"></label>
+<label style="display: block; margin-bottom: 10px;">
+  תעודת זהות
+  <div style="display: flex; align-items: center; gap: 8px; direction: ltr;">
+    <input id="studentID" type="text" style="flex: 1; min-width: 0;">
+    <button type="button" onclick="generateRandomIsraeliID()" title="הגרל תעודת זהות" style="padding: 4px 8px; font-size: 16px;">
+      🎲
+    </button>
+  </div>
+</label>
+  <label>בית ספר
+    <select id="studentSchool">
+      <option value="קציר א">קציר א</option>
+      <option value="קציר ב">קציר ב</option>
+      <option value="תיכון">תיכון</option>
+    </select>
+  </label>
+  <label>כיתה (למשל: י1) <input id="studentClass"></label>
+  <label>כתובת דוא"ל <input id="emailField" type="email"></label>
+    <label>משתתף בפרויקט השאלת ספרים:
+  <select id="studentInLoanProject" required>
+    <option value="" disabled selected>בחר</option>
+    <option value="true">כן</option>
+    <option value="false">לא</option>
+  </select>
+</label>
+    <label style="display: block; margin-bottom: 15px;">
+      הוספת הערות<br>
+      <input type="text" id="addNote" style="width: 100%;">
+    </label>
+  <button onclick="addStudent()">הוסף תלמיד</button>
+  <label class="bolded">ייבוא<input type="file" accept=".xlsx" onchange="importExcel(event, 'students')"></label>
+
+</div>
+   </div>
+
+<div id="purchaseReceiptModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0008; justify-content:center; align-items:center; z-index:9999;">
+  <div id="purchaseReceiptContent" style="background:#fff; padding:30px; max-width:600px; max-height:90vh; overflow:auto; font-family:Arial;" dir="rtl">
+    <!-- תוכן יוזן דינמית -->
+    <div id="receiptHTMLArea"></div>
+    <div style="margin-top: 20px; text-align: center;">
+      <button onclick="printReceipt()">🖨️ הדפס</button>
+      <button onclick="closePurchaseReceipt()">❌ סגור</button>
+    </div>
+  </div>
+</div>
+
+<div id="bulkReturnModal" class="modal">
+  <div class="modal-content">
+    <h3>החזרה מרוכזת</h3>
+    <div id="bulkReturnSelect" style="max-height: 300px; overflow-y: auto;"></div>
+    <button onclick="confirmBulkReturn()">אישור החזרה</button>
+    <button onclick="document.getElementById('bulkReturnModal').style.display='none'">ביטול</button>
+  </div>
+</div>
+
+<div id="studentsTab" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="studentsTab">
+<div class="container">
+  <h2>✏️ רשימת תלמידים</h2>
+  <div class="filter-buttons">
+    <button onclick="openBulkLendModal()">📚 השאלה מרוכזת לכל התלמידים ברשימה</button>
+    <button onclick="openBulkReturnModal()">החזרה מרוכזת עבור השאלות מרוכזות קיימות</button>
+  </div>
+
+  <div class="filter-section">
+    <div class="filter-group" style="flex: 1 1 100%;">
+      <label for="studentTableSearch">סינון תלמידים לפי שם / ת"ז / כיתה / בי"ס</label>
+      <input id="studentTableSearch" placeholder="לדוגמה: תמר י2" oninput="renderStudentTable()">
+    </div>
+
+    <div class="filter-group">
+      <label for="filterGrade">שכבה</label>
+      <select id="filterGrade" onchange="renderStudentTable()">
+        <option value="">הכל</option>
+        <option value="ז">ז</option>
+        <option value="ח">ח</option>
+        <option value="ט">ט</option>
+        <option value="י">י</option>
+        <option value="יא">יא</option>
+        <option value="יב">יב</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filterClassroom">כיתה</label>
+      <input id="filterClassroom" placeholder="למשל: י3" oninput="renderStudentTable()">
+    </div>
+
+    <div class="filter-group">
+      <label for="filterSubject">מקצוע לסינון ספרים</label>
+      <input id="filterSubject" placeholder="למשל: מתמטיקה" oninput="renderStudentTable()">
+    </div>
+
+    <div class="filter-group">
+      <label for="filterLevel">רמת לימוד</label>
+      <select id="filterLevel" onchange="renderStudentTable()">
+        <option value="">הכל</option>
+        <option value="3 יחל">3 יח"ל</option>
+        <option value="4 יחל">4 יח"ל</option>
+        <option value="5 יחל">5 יח"ל</option>
+      </select>
+    </div>
+
+<div id="filterByBorrowedBooks" class="filter-group expanded">
+<div id="bookFilterWrapper" style="display: flex; align-items: center; gap: 10px;">
+  <label for="bookFilterInput">סינון לפי ספרים:</label>
+</div>
+<input type="text" id="bookFilterInput" placeholder="חפש ספר..." oninput="filterBooksBorrow()" />
+
+
+  <div id="bookTagsContainer" class="book-tags">
+    <!-- ספרים כתגיות יוצגו כאן -->
+  </div>
+
+  <div id="selectedBooksDisplay" class="selected-books">
+    <!-- שמות הספרים שנבחרו יוצגו כאן -->
+  </div>
+</div>
+
+
+    <div class="filter-group">
+      <label for="majorSearch">
+        <span class="help-icon" title="אפשר לחפש לפי: כימיה, פיזיקה, ביולוגיה, מדעי המחשב, הנדסת תוכנה, מוזיקה, היסטוריה מוגבר, תנ&quot;ך מוגבר, סוציולוגיה, גיאוגרפיה, חשבונאות, ניהול עסקי, ערבית (מגמה), דיפלומטיה, עמ&quot;ט, מב&quot;ר, נחשון, חינוך מיוחד">?</span>
+        מגמה
+      </label>
+      <input type="text" id="majorSearch" oninput="renderStudentTable()">
+    </div>
+
+    <div class="filter-group">
+      <label for="filterInLoanProject">משתתף בפרויקט</label>
+      <select id="filterInLoanProject" oninput="renderStudentTable()">
+        <option value="">הכל</option>
+        <option value="true">כן</option>
+        <option value="false">לא</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div>
+  <p id="studentTableCount" style="margin: 10px 0; font-weight: bold; text-align: right;">סך הכל: 0 תלמידים</p>
+</div>
+<div id="studentTableContainer tableContainer" style="overflow-x: auto; width: 100%;">
+  <table id="studentTable" style="width: 90%;">
+<thead>
+  <tr>
+    <th data-label="שם" style="text-align: center;">שם</th>
+    <th  data-label='ת"ז' style="text-align: center;">ת"ז</th>
+    <th data-label="כיתה" style="text-align: center;">כיתה</th>
+    <th data-label='בי"ס' style="text-align: center;">בי"ס</th>
+    <th data-label="חוב" style="text-align: center;">חוב</th>
+    <th data-label="ספרים מושאלים"  style="text-align: center; vertical-align: top;
+;">ספרים מושאלים</th>
+    <th data-label="זמני השאלה" style="text-align: center;">זמני השאלה</th>
+    <th data-label="זמני החזרה\תשלום"  style="text-align: center;">זמני החזרה\תשלום</th>
+    <th data-label="הערות" style="text-align: center;">הערות</th>
+    <th data-label="פעולות" style="text-align: center;">פעולות</th>
+  </tr>
+</thead>
+    <tbody></tbody>
+  </table>
+</div>
+<br>
+<button onclick="deleteFilteredStudents()">מחק את כל התלמידים שבתצוגה</button>
+<button onclick="exportFilteredStudents()">ייצא את כל התלמידים שבתצוגה</button>
+
+<section id="studentStatsSection" aria-labelledby="studentStatsHeader">
+  <h2 id="studentStatsHeader">📊 סטטיסטיקות תלמידים</h2>
+
+  <!-- ניווט בין גרפים -->
+<nav aria-label="Student Stats Navigation" class="chart-buttons">
+  <button onclick="showStudentChart('class')">התפלגות לפי כיתות</button>
+  <button onclick="showStudentChart('school')">התפלגות לפי בתי ספר</button>
+</nav>
+
+
+
+  <!-- אזור הגרף הראשי -->
+<section id="studentChartArea" class="chart-area">
+  <div id="studentsByClassChart" style="max-width:600px;"></div>
+  <div id="studentsBySchoolChart" style="max-width:600px; display:none;"></div>
+</section>
+
+
+
+  <!-- מידע צדדי -->
+  <aside>
+    <p>💡 טיפ: לחץ על קטגוריה בגרף כדי להסתיר / להציג אותה.</p>
+  </aside>
+</section>
+
+</div>
+
+
+<!-- אזור ניהול ספרים -->
+   <div id="booksCreateTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="booksTab">
+<div class="container">
+  <h2>📚 הוספת ספר</h2>
+ <label>שם הספר <input id="bookName"></label>
+<label>מקצוע <input id="bookSubject"></label>
+<label>שכבות גיל:
+  <input id="gradeTagsInput" type="text" placeholder="הקלד שכבה (למשל: ח) ולחץ Enter" />
+</label>
+<div id="gradeTagsContainer" class="tag-container"></div>
+<input type="hidden" id="bookGrade">
+<label>רמת לימוד
+  <select id="bookLevel">
+    <option value="כללי">כללי</option>
+    <option value="3 יחל">3 יח"ל</option>
+    <option value="4 יחל">4 יח"ל</option>
+    <option value="5 יחל">5 יח"ל</option>
+    <option value="הקבצה ב">הקבצה ב</option>
+    <option value="הקבצה א">הקבצה א</option>
+    <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+    <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+  </select>
+</label>
+
+<label>כרך
+  <select id="bookVolume" required>
+    <option value="" disabled selected>בחר כרך</option>
+    <option value="יחיד">יחיד</option>
+    <option value="א">א</option>
+    <option value="ב">ב</option>
+    <option value="ג">ג</option>
+    <option value="ד">ד</option>
+  </select>
+</label>
+
+<label>שם הוצאה <input id="bookPublisher" required></label>
+
+<label>סוג הספר
+  <select id="bookType" required>
+    <option value="" disabled selected>בחר סוג ספר</option>
+    <option value="ספר">ספר</option>
+    <option value="חוברת">חוברת</option>
+    <option value="חוברת פנימית">חוברת פנימית</option>
+  </select>
+</label>
+
+    <div id="priceWrapper" style="display: none;">
+    <label>עלות רכישה חיצונית
+      <input id="bookPrice" min="0" type="number">
+    </label>
+    </div>
+
+<label class="bolded">כמות במלאי (עבור הזמנות ראשוניות) <input id="qtySelect" type="number" min='0' value="1"></label>
+
+    <label>הערות
+      <input id="bookNote" type="text">
+    </label>
+
+<button onclick="addBook()">הוסף ספר</button>
+
+  <label class="bolded">ייבוא<input type="file" accept=".xlsx" onchange="importExcel(event, 'books')"></label>
+
+</div>
+
+   </div>
+<!-- מודל עריכת ספר -->
+<div id="editBookModal" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+">
+  <div style="
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 800px;
+    margin: 40px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  ">
+    <h3 style="text-align: right; margin: 0;">עריכת פרטי ספר</h3>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+      <label style="flex: 1 1 45%;">שם הספר <input id="editBookName" type="text" style="width: 100%;"></label>
+      <label style="flex: 1 1 45%;">מקצוע <input id="editBookSubject" type="text" style="width: 100%;"></label>
+<div style="flex: 1 1 100%;">
+  <label for="editGradeTagInput">שכבות גיל (תגיות)</label>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <input id="editGradeTagInput" type="text" placeholder="הוסף שכבה (למשל: ח)" style="flex: 1;">
+    <button type="button" onclick="addEditGradeTag()">➕ הוסף</button>
+  </div>
+  <div id="editGradeTags" class="tagsContainer" style="margin-top: 5px;"></div>
+  <input type="hidden" id="editBookGrade">
+</div>
+      <label style="flex: 1 1 45%;">רמת לימוד
+        <select id="editBookLevel" style="width: 100%;">
+          <option value="כללי">כללי</option>
+          <option value="3 יחל">3 יח"ל</option>
+          <option value="4 יחל">4 יח"ל</option>
+          <option value="5 יחל">5 יח"ל</option>
+          <option value="הקבצה ב">הקבצה ב</option>
+          <option value="הקבצה א">הקבצה א</option>
+          <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+          <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+        </select>
+      </label>
+      <label style="flex: 1 1 45%;">כרך
+        <select id="editBookVolume" style="width: 100%;">
+          <option value="יחיד">יחיד</option>
+          <option value="א">א</option>
+          <option value="ב">ב</option>
+          <option value="ג">ג</option>
+          <option value="ד">ד</option>
+        </select>
+      </label>
+      <label style="flex: 1 1 45%;">שם הוצאה <input id="editBookPublisher" type="text" style="width: 100%;"></label>
+      <label style="flex: 1 1 45%;">סוג הספר
+        <select id="editBookType" style="width: 100%;">
+          <option value="ספר">ספר</option>
+          <option value="חוברת">חוברת</option>
+          <option value="חוברת פנימית">חוברת פנימית</option>
+        </select>
+      </label>
+      <label style="flex: 1 1 45%;">עלות הספר <input id="editBookPrice" type="number" style="width: 100%;"></label>
+      <label style="flex: 1 1 45%;">כמות עותקי הספר במלאי <input id="editBookStockCount" type="number" style="width: 100%;"></label>
+      <label style="flex: 1 1 45%;">הערות <input id="editBookNote" type="text" style="width: 100%;"></label>
+    </div>
+
+    <div style="text-align: left;">
+      <button onclick="saveEditedBook()">💾 שמור</button>
+      <button onclick="closeEditBookModal()">❌ בטל</button>
+    </div>
+  </div>
+</div>
+
+<div id="addBooksModal" style="display:none; position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:white;padding:20px;border-radius:10px;max-width:500px;width:90%;">
+    <h3>הוסף ספרים לסט</h3>
+    <input id="addBooksSearch" placeholder="סנן ספרים..." oninput="renderAddBooksList()">
+    <div id="addBooksList" style="max-height:300px;overflow:auto;margin-top:10px;"></div>
+    <button onclick="closeAddBooksModal()">סגור</button>
+  </div>
+</div>
+
+<div id="removeBooksModal" style="display:none; position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:white;padding:20px;border-radius:10px;max-width:500px;width:90%;">
+    <h3>הסר ספרים מהסט</h3>
+    <input id="removeBooksSearch" placeholder="סנן ספרים..." oninput="renderRemoveBooksList()">
+    <div id="removeBooksList" style="max-height:300px;overflow:auto;margin-top:10px;"></div>
+    <button onclick="closeRemoveBooksModal()">סגור</button>
+  </div>
+</div>
+
+
+<div id="booksTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="booksTab">
+
+  <div class="container">
+  <h2>📚 רשימת ספרים</h2>
+
+  <label>סינון ספרים:
+    <input id="bookTableSearch" placeholder="סנן לפי שם/מקצוע/שכבה/הוצאה/סוג/כרך">
+    </label>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+    <label>שכבת גיל:
+<select id="gradeFilter">
+  <option value="all">הכל</option>
+  <option value="high">כלל התיכון</option>
+  <option value="mid">כלל חטיבת הביניים</option>
+  <option value="ז">שכבת ז</option>
+  <option value="ח">שכבת ח</option>
+  <option value="ט">שכבת ט</option>
+  <option value="י">שכבת י</option>
+  <option value="יא">שכבת יא</option>
+  <option value="יב">שכבת יב</option>
+</select>
+
+    </label>
+
+    <label>רמה:
+      <select id="bookLevelFilter" onchange="renderBookTable()">
+        <option value="">הכל</option>
+            <option value="הקבצה ב">הקבצה ב</option>
+    <option value="הקבצה א">הקבצה א</option>
+    <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+    <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+        <option value="3 יחל">3 יח"ל</option>
+        <option value="4 יחל">4 יח"ל</option>
+        <option value="5 יחל">5 יח"ל</option>
+        <option value="כללי">כללי</option>
+      </select>
+    </label>
+
+    <label>כרך:
+      <select id="bookVolumeFilter" onchange="renderBookTable()">
+        <option value="">הכל</option>
+        <option value="יחיד">יחיד</option>
+        <option value="א">א</option>
+        <option value="ב">ב</option>
+        <option value="ג">ג</option>
+        <option value="ד">ד</option>
+      </select>
+    </label>
+
+    <label>הוצאה:
+      <input id="bookPublisherFilter" type="text" oninput="renderBookTable()" placeholder="הקלד שם הוצאה">
+    </label>
+
+    <label>סוג ספר:
+      <select id="bookTypeFilter" onchange="renderBookTable()">
+        <option value="">הכל</option>
+        <option value="ספר">ספר</option>
+        <option value="חוברת">חוברת</option>
+        <option value="חוברת פנימית">חוברת פנימית</option>
+      </select>
+    </label>
+
+<button id="toggleStockFilterBtn" onclick="toggleStockFilter()"> סינון לפי מספר עותקים במלאי
+</button>
+
+<div id="stockFilterContainer">
+  <label>
+    מינימום:
+    <input type="number" id="stockMinInput" min="0" placeholder="ללא הגבלה">
+  </label>
+  <label>
+    מקסימום:
+    <input type="number" id="stockMaxInput" min="0" placeholder="ללא הגבלה">
+  </label>
+  <button onclick="renderBookTable()">🔍 סנן</button>
+</div>
+
+  </div>
+
+      <div>
+    <p id="bookTableCount" style="margin: 10px 0; font-weight: bold; text-align: right;">סך הכל: 0 ספרים</p>
+</div>
+
+<div id="bookTableContainer tableContainer" style="overflow-x:auto;">
+  <table id="bookTable" style="width: 85%; margin: 0 auto;">
+    <thead>
+      <tr>
+        <th style="text-align: right;">שם</th>
+        <th style="text-align: center;">מקצוע</th>
+        <th style="text-align: center;">שכבה</th>
+        <th style="text-align: center;">רמה</th>
+        <th style="text-align: center;">כרך</th>
+        <th style="text-align: center;">הוצאה</th>
+        <th style="text-align: center;">סוג</th>
+        <th style="text-align: center;">מחיר</th>
+        <th style="text-align: center;">כמות במלאי</th>
+        <th style="text-align: center;">הערות</th>
+        <th style="text-align: center;">פעולות</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+
+  <button onclick="deleteFilteredBooks()">מחק את כל הספרים שבתצוגה</button>
+  <button onclick="exportFilteredBooks()">📤 ייצוא ספרים מסוננים</button>
+
+</div>
+
+<section id="bookStatsSection" aria-labelledby="bookStatsHeader">
+  <h2 id="bookStatsHeader">📚 סטטיסטיקות ספרים</h2>
+
+<nav aria-label="Book Stats Navigation" class="chart-buttons">
+  <button onclick="showBookChart('subject')">לפי מקצוע</button>
+  <button onclick="showBookChart('type')">לפי סוג ספר</button>
+</nav>
+
+
+<section id="bookChartArea" class="chart-area">
+  <div id="booksBySubjectChart" style="max-width:600px;"></div>
+  <div id="booksByTypeChart" style="max-width:600px; display:none;"></div>
+</section>
+
+  <aside>
+    <p>📘 כאן ניתן לראות את פיזור הספרים לפי קטגוריות. הנתונים מתעדכנים ישירות מ־MongoDB.</p>
+  </aside>
+</section>
+
+</div>
+
+<!-- השאלת ספרים -->
+<div id="borrowTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="borrowTab">
+<div class="container">
+  <h2>השאלת\רכישת ספרים</h2>
+  <label class="bolded">חפש תלמיד <input id="searchStudentInput" oninput="filterStudents()"></label>
+  <div style="display: flex;">
+  <select style="width: 70%" id="filteredStudentsSelect"></select>
+  </div>
+
+ <label class="bolded">חפש ספר <input id="searchBookInput" oninput="filterBooksBorrow()"></label>
+ <label class="bolded" for="levelFilter">סנן לפי רמת לימוד:</label>
+<select id="levelFilter" onchange="filterBooksBorrow()">
+  <option value="">הכל</option>
+  <option value="3 יחל">3 יח"ל</option>
+  <option value="4 יחל">4 יח"ל</option>
+  <option value="5 יחל">5 יח"ל</option>
+      <option value="הקבצה ב">הקבצה ב</option>
+    <option value="הקבצה א">הקבצה א</option>
+    <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+    <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+</select>
+<label>סנן לפי כרך:
+  <select id="volumeFilter" onchange="filterBooksBorrow()">
+    <option value="">הכל</option>
+    <option value="יחיד">יחיד</option>
+    <option value="א">א</option>
+    <option value="ב">ב</option>
+    <option value="ג">ג</option>
+    <option value="ד">ד</option>
+  </select>
+</label>
+
+<label>סנן לפי הוצאה:
+  <input id="publisherFilter" type="text" oninput="filterBooksBorrow()" placeholder="הקלד שם הוצאה">
+</label>
+
+<label>סנן לפי סוג:
+  <select id="typeFilter" onchange="filterBooksBorrow()">
+    <option value="">הכל</option>
+    <option value="ספר">ספר</option>
+    <option value="חוברת">חוברת</option>
+    <option value="חוברת פנימית">חוברת פנימית</option>
+  </select>
+</label>
+
+<div style="display: flex; align-items: center; gap: 8px;">
+  <label class="switch">
+    <input type="checkbox" id="deepSearchCheckbox"/>
+    <span class="slider"></span>
+  </label>
+  <div>
+  <span>חיפוש מורחב</span>
+  </div>
+</div>
+
+  
+</label>
+ <h5>ספרים להשאלה</h5>
+<div id="filteredBooksSelect" class="checkbox-list"></div>
+<div style="margin-top: 10px;">
+  <strong>📚 ספרים שנבחרו:</strong>
+  <ul id="selectedBooksPreview" style="margin-top: 5px; padding-inline-start: 20px;"></ul>
+</div>
+
+<br>
+<button onclick="selectAllCheckboxes('filteredBooksSelect', true)">בחר את כל הספרים להשאלה</button>
+<hr>
+<button id="btnBorrow" onclick="openConfirmModal('השאלה')">📥 השאל</button>
+<button id="btnPurchase" style="display:none;" onclick="openConfirmModal('רכישה')">🛒 רכישה</button>
+
+</div>
+</div>
+
+<div id="returnTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="returnTab">
+  <div class="cotainer">
+  <h2>החזרת\חיוב ספרים</h2>
+  <label class="bolded">חפש תלמיד <input id="searchStudentInputReturn" oninput="filterStudents()"></label>
+  <select id="filteredStudentsSelectReturn"></select>
+
+  <div class="filterBooksReturnContainer" style="display: none;">
+  <label class="bolded">חפש ספר <input id="searchBookInputReturn" oninput="filterBooks()"></label> <!-- הוספה חשובה -->
+
+  <label class="bolded" for="levelFilterReturn">סנן לפי רמת לימוד:</label>
+  <select id="levelFilterReturn" onchange="filterBooks()">
+    <option value="">הכל</option>
+    <option value="3 יחל">3 יח"ל</option>
+    <option value="4 יחל">4 יח"ל</option>
+    <option value="5 יחל">5 יח"ל</option>
+        <option value="הקבצה ב">הקבצה ב</option>
+    <option value="הקבצה א">הקבצה א</option>
+    <option value="הקבצה א מואצת">הקבצה א' מואצת</option>
+    <option value="הקבצה א ו-א מואצת">הקבצה א' ו-א' מואץ</option>
+  </select>
+  <label>סנן לפי כרך:
+  <select id="volumeFilter" onchange="filterBooks()">
+    <option value="">הכל</option>
+    <option value="יחיד">יחיד</option>
+    <option value="א">א</option>
+    <option value="ב">ב</option>
+    <option value="ג">ג</option>
+    <option value="ד">ד</option>
+  </select>
+</label>
+
+<label>סנן לפי הוצאה:
+  <input id="publisherFilter" type="text" oninput="filterBooks()" placeholder="הקלד שם הוצאה">
+</label>
+
+<label>סנן לפי סוג:
+  <select id="typeFilter" onchange="filterBooks()">
+    <option value="">הכל</option>
+    <option value="ספר">ספר</option>
+    <option value="חוברת">חוברת</option>
+    <option value="חוברת פנימית">חוברת פנימית</option>
+  </select>
+</label>
+  </div>
+
+  <h5>ספרים להחזרה</h5>
+  <div id="returnBooksSelect" class="checkbox-list"></div>
+
+  <br>
+  <button onclick="selectAllCheckboxes('returnBooksSelect', true)">בחר את כל הספרים להחזרה</button>
+  <br>
+  <hr>
+  <br>
+  <button onclick="returnBook()">📤 החזר</button>
+  <button onclick="openChargeModal()">חיוב עבור בלאי\אובדן </button>
+
+  <div id="chargeModal" style="display:none; position:fixed; inset:0; background-color:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
+      <h3>💸 חיוב תלמיד עבור ספרים פגומים או אבודים</h3>
+      <div id="chargeBooksList" class="checkbox-list"></div>
+      <div style="text-align:left; margin-top:20px;">
+        <button onclick="confirmCharge()">✔️ חייב תלמיד</button>
+        <button onclick="document.getElementById('chargeModal').style.display='none'">❌ בטל</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="clustersTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="clustersTab">
+  <div class="container">
+    <h2>📦 סטים של ספרים</h2>
+
+    <!-- יצירת סט חדש -->
+    <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 10px;">
+      <h3>➕ צור סט חדש</h3>
+      <label>שם הסט: <input id="clusterNameInput" placeholder="שם הסט"></label><br>
+<label for="clusterGradeInput">שכבות גיל:</label>
+<div id="clusterGradeTags" style="display: flex; gap: 8px; flex-wrap: wrap; border: 1px solid #ccc; padding: 6px; border-radius: 6px; min-height: 38px; cursor: text;">
+  <!-- תגיות יתווספו כאן -->
+  <input id="clusterGradeInput" style="border:none; outline:none; flex-grow:1; min-width: 40px;" placeholder="הוסף שכבה" />
+</div>
+<br><br>
+
+      <label for="clusterBookSearch">בחירת ספרים לסט:</label>
+      <input id="clusterBookSearch" placeholder="סנן ספרים לפי שם / מקצוע / הוצאה וכו׳" oninput="renderFloatingBookTags()">
+      <div id="floatingBookTagContainer" style="display: flex; flex-wrap: wrap; gap: 5px; border: 1px solid #ccc; padding: 10px; margin-top: 10px; max-height: 150px; overflow-y: auto;">
+        <!-- כאן יופיעו תגיות הספרים לבחירה -->
+      </div>
+
+      <button onclick="createCluster()">📁 צור סט</button>
+    </div>
+
+    <!-- טבלת הסטים -->
+    <h3>📋 רשימת סטים</h3>
+    <input id="clusterTableSearch" placeholder="סינון לפי שם הסט או שמות ספרים" oninput="renderClusterTable()">
+    <table id="clusterTable" style="width: 85%; margin: 0 auto;">
+      <thead>
+        <tr>
+          <th style="text-align: center;">שם הסט</th>
+          <th style="text-align: center;">שכבות גיל</th>
+          <th style="text-align: center;">כמות ספרים</th>
+          <th style="text-align: center;">שמות הספרים</th>
+          <th style="text-align: center;">פעולות</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal עריכת סט -->
+<div id="editClusterModal" style="
+  display: none;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+  <div style="background: #fff; padding: 20px; border-radius: 10px; width: 400px; max-width: 90%;">
+    <h3>✏️ עריכת סט</h3>
+    <label>שם הסט:
+      <input id="editClusterName" style="width: 100%;">
+    </label>
+    <br><br>
+    <label for="editClusterGradeInput">שכבות גיל:</label>
+    <div id="editClusterGradeTags" style="display: flex; gap: 8px; flex-wrap: wrap; border: 1px solid #ccc; padding: 6px; border-radius: 6px; min-height: 38px; cursor: text;">
+      <input id="editClusterGradeInput" style="border:none; outline:none; flex-grow:1; min-width: 40px;" placeholder="הוסף שכבה" />
+    </div>
+    <br>
+    <div style="text-align: center;">
+      <button onclick="saveEditedCluster()">💾 שמור שינויים</button>
+      <button onclick="closeEditClusterModal()">❌ ביטול</button>
+    </div>
+  </div>
+</div>
+
+<div id="volunteersTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="volunteersTab">
+  
+  <div class="container">
+  <h2>➕ הוספת תיעוד התנדבות</h2>
+  <label>שם מלא <input id="voluneerName"></label>
+  <label>בית ספר
+    <select id="volunteerSchool">
+      <option value="קציר א">קציר א</option>
+      <option value="קציר ב">קציר ב</option>
+      <option value="תיכון">תיכון</option>
+    </select>
+  </label>
+  <label>כיתה (למשל: י1) <input id="volunteerClass"></label>
+  <label>תאריך התנדבות<input id="voluneerDate" type="date"></label>
+  <label>שעת התחלה <input id="volunteerStart" type="time"></label>
+  <label>שעת סיום <input id="volunteerEnd" type="time"></label>
+
+  <button onclick="addVolunteer()">הוסף תיעוד התנדבות</button>
+
+</div>
+  
+  <div class="container">
+  <h2>✏️ רשימת מתנדבים</h2>
+  <label> סינון מתנדבים:
+    <input id="volunteerTableSearch" placeholder="סנן לפי שם/ת\"ז/כיתה/בי"ס">
+  </label>
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;">
+  <label>סנן לפי שכבה:
+    <select id="filterGrade" onchange="renderVolunteerTable()">
+      <option value="">הכל</option>
+      <option value="ז">ז</option>
+      <option value="ח">ח</option>
+      <option value="ט">ט</option>
+      <option value="י">י</option>
+      <option value="יא">יא</option>
+      <option value="יב">יב</option>
+    </select>
+  </label>
+
+  <label>סנן לפי כיתה (למשל י3):
+    <input id="filterClassroom" oninput="renderVolunteerTable()" placeholder="כגון: י3" />
+  </label>
+
+  <label>מקצוע לסינון ספרים:
+    <input id="filterSubject" oninput="renderVolunteerTable()" placeholder="כגון: מתמטיקה" />
+  </label>
+
+  <label>רמת לימוד:
+    <select id="filterLevel" onchange="renderVolunteerTable()">
+      <option value="">הכל</option>
+      <option value="3 יחל">3 יח"ל</option>
+      <option value="4 יחל">4 יח"ל</option>
+      <option value="5 יחל">5 יח"ל</option>
+    </select>
+  </label>
+
+  <label>סינון לפי השתתפות בפרויקט:
+  <select id="filterInLoanProject" onchange="renderVolunteerTable()">
+    <option value="">הכל</option>
+    <option value="true">כן</option>
+    <option value="false">לא</option>
+  </select>
+</label>
+
+</div>
+
+<div>
+  <p id="volunteersTableCount" style="margin: 10px 0; font-weight: bold; text-align: right;">סך הכל: 0 מתנדבים</p>
+</div>
+<div class="tableContainer">
+  <table id="volunteersTable">
+<thead>
+  <tr>
+    <th style="text-align: right;">שם</th>
+    <th style="text-align: center;">כיתה</th>
+    <th style="text-align: center;">בי"ס</th>
+    <th style="text-align: center;">תאריכי התנדבות</th>
+    <th style="text-align: center;">כמות שעות כוללת</th>
+    <th style="text-align: center;">הערות</th>
+  </tr>
+</thead>
+    <tbody></tbody>
+  </table>
+  </div>
+<br>
+
+</div>
+
+</div>
+
+<div id="addCopiesModal" style="display: none; position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+  <div style="background: white; padding: 20px; border-radius: 8px; width: 300px; text-align: center;">
+    <h3 style="margin-bottom: 10px;">הוספת עותקים</h3>
+    <p id="addCopiesBookName" style="margin-bottom: 5px; font-weight: bold;"></p>
+    <p id="addCopiesCurrentStock" style="margin-bottom: 15px; font-size: 14px; color: #555;"></p>
+
+    <input id="addCopiesInput" type="number" min="1" placeholder="כמה עותקים להוסיף?" style="width: 100%; padding: 6px;">
+
+    <div style="margin-top: 20px; display: flex; flex-direction: column;">
+      <button onclick="confirmAddCopies()" style="padding: 6px;">✔️ אישור</button>
+      <button onclick="closeAddCopiesModal()" style="padding: 6px;">✖️ ביטול</button>
+    </div>
+  </div>
+</div>
+
+<div id="studentDetailModal" style="display:none; position:fixed; inset:0; background-color:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
+    <h3>📋 פרטי תלמיד</h3>
+    <div id="studentDetailContent" style="text-align:right; line-height:1.8;"></div>
+<div style="text-align:left; margin-top:20px;">
+  <button onclick="closeStudentModal()">❌ סגור</button>
+</div>
+
+  </div>
+</div>
+<button onclick="scrollToTop()" id="scrollTopBtn" title="למעלה">↑</button>
+<br>
+<br>
+  <footer style="margin-left:10px;">
+    <b>© 2025 Aviv Ben-Amar. All rights reserved<br>
+
+This software and its source code, including all associated files, designs, and data structures, are the intellectual property of Aviv Ben-Amar and are protected under applicable copyright laws<br>
+
+Unauthorized copying, distribution, modification, or use of any part of this system is strictly prohibited without prior written consent
+<br>
+Violations may result in civil and/or criminal liability</b>
+</footer>
+<br>
+
+<div id="globalLoading">
+  <div class="spinner"></div>
+  <p>⏳ טוען נתונים... אנא המתן</p>
+</div>
+</body>
+
+<script src="index.js"></script>
+</html>
