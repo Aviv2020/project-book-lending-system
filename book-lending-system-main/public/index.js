@@ -1,5 +1,6 @@
-  let currentEditIndex = null;
- let clusters = []; // מערך שמכיל את כל הסטים
+let currentEditIndex = null;
+let clusters = []; // מערך שמכיל את כל הסטים
+
 let selectedBookIdsForCluster = new Set(); // הספרים שנבחרו בסט החדש
 let selectedBookIdsRealtime = [];
 let selectedBooks = new Set();
@@ -3011,11 +3012,13 @@ function openChargeModal() {
       const select = document.createElement('select');
       select.dataset.borrowId = entry.id;
       select.dataset.bookId = bookId;
-      select.innerHTML = `
-        <option value="">ללא חיוב</option>
-        <option value="אבד">אבד</option>
-        <option value="בלאי">בלאי</option>
-      `;
+select.innerHTML = `
+  <option value="">ללא חיוב</option>
+  <option value="lost">אבד</option>
+  <option value="damaged">בלאי</option>
+  <option value="other">אחר</option>
+`;
+
 
       wrapper.appendChild(label);
       wrapper.appendChild(select);
@@ -3032,7 +3035,9 @@ async function confirmCharge() {
   const newCharges = [];
 
   selects.forEach(sel => {
-    const type = sel.value;
+
+    const type = sel.value; // הערך כבר באנגלית: lost/damaged/other
+
     if (!type || !pendingChargeStudent) return;
 
     const borrowId = sel.dataset.borrowId;
@@ -3046,12 +3051,14 @@ async function confirmCharge() {
     if (bookEntry) {
       const charge = {
         studentId: pendingChargeStudent.id,
+        bookId,
         bookName: (books.find(b => b.id === bookId) || {}).name || '',
         type,
         date: new Date().toISOString(),
         paid: false,
-        borrowId,
+        borrowId
         bookId
+
       };
       charges.push(charge);
       newCharges.push(charge);
@@ -3068,7 +3075,6 @@ async function confirmCharge() {
   if (!confirmed) return;
 
   try {
-    // ✅ שמירה בשרת
     for (const charge of newCharges) {
       const res = await fetch(`/api/2026/charges`, {
         method: 'POST',
@@ -3076,6 +3082,10 @@ async function confirmCharge() {
         body: JSON.stringify(charge)
       });
       if (!res.ok) throw new Error("שגיאה בשמירת החיוב");
+
+
+      const saved = await res.json();
+      charge.id = saved.id; // ✅ שמירה של id מהשרת לעדכון עתידי
     }
 
     showSuccess(`${count} ספרים חויבו`);
@@ -3095,7 +3105,6 @@ async function confirmCharge() {
     alert("שגיאה בשמירת החיוב בשרת");
   }
 }
-
 
 async function deleteFilteredStudents() {
   if (!confirm('האם למחוק את כל התלמידים המופיעים בתצוגה?')) return;
@@ -3178,24 +3187,74 @@ async function clearStudentDebt(studentId) {
     c.paidDate = now;
 
     const borrowEntry = borrowed.find(b => b.id === c.borrowId);
-    if (borrowEntry && !returned.some(r => r.id === borrowEntry.id)) {
-      returned.push({
-        ...borrowEntry,
+
+    const book = books.find(bk => bk.id === c.bookId);
+    const student = students.find(s => s.id === studentId);
+
+    if (borrowEntry && book && student && !returned.some(r => r.id === borrowEntry.id)) {
+      const returnEntry = {
+        year: currentYear,
+        id: crypto.randomUUID(), // מזהה חדש להחזרה
+        student: {
+          id: student.id,
+          name: student.name,
+          school: student.school || '',
+          classroom: student.classroom || '',
+          inLoanProject: !!student.inLoanProject
+        },
+        book: {
+          id: book.id,
+          name: book.name,
+          subject: book.subject || '',
+          grade: book.grade || '',
+          level: book.level || '',
+          volume: book.volume || '',
+          publisher: book.publisher || '',
+          type: book.type || '',
+          note: book.note || '',
+          price: book.price || ''
+        },
         returnDate: now,
         returnedByDebtClearance: true
-      });
+      };
+
+      returned.push(returnEntry);
+
+      try {
+        const res = await fetch(`/api/2026/returned`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...userIdHeader },
+          body: JSON.stringify(returnEntry)
+        });
+        if (!res.ok) throw new Error("שגיאה בשמירת החזרה");
+      } catch (err) {
+        console.error("❌ clearStudentDebt (return):", err);
+      }
     }
 
-    // ✅ עדכון בשרת
     try {
-      const res = await fetch(`/api/2026/charges/${c._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...userIdHeader },
-        body: JSON.stringify(c)
-      });
-      if (!res.ok) throw new Error("שגיאה בעדכון חיוב");
+      if (c.id) {
+        // עדכון חיוב קיים לפי id
+        const res = await fetch(`/api/2026/charges/${c.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', ...userIdHeader },
+          body: JSON.stringify(c)
+        });
+        if (!res.ok) throw new Error("שגיאה בעדכון חיוב");
+      } else {
+        // חיוב חדש → יצירה
+        const res = await fetch(`/api/2026/charges`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...userIdHeader },
+          body: JSON.stringify(c)
+        });
+        if (!res.ok) throw new Error("שגיאה בשמירת חיוב חדש");
+        const saved = await res.json();
+        c.id = saved.id; // ✅ לשימוש עתידי
+      }
     } catch (err) {
-      console.error("❌ clearStudentDebt:", err);
+      console.error("❌ clearStudentDebt (charge):", err);
+
       alert("שגיאה בעדכון החוב בשרת");
     }
   }
@@ -5043,10 +5102,11 @@ function renderClusterTable() {
       <td style="padding: 8px; text-align: center; max-width: 60px;">${cluster.bookIds.length}</td>
       <td style="padding: 8px; text-align: center; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${displayedBooks}</td>
       <td style="justify-content: center; padding: 8px; text-align: center; display: flex; gap:10px;">
-        <button onclick="openEditClusterModal(${cluster.id})" title="ערוך סט"><i class="fas fa-pencil"></i></button>
-          <button onclick="openAddBooksModal(${cluster.id})" title="הוסף ספרים לסט"><i class="fas fa-plus"></i></button>
-  <button class="deleteBtn" onclick="openRemoveBooksModal(${cluster.id})" title="הסר ספרים מהסט"><i class="fas fa-minus"></i></button>
-        <button onclick="deleteCluster(${cluster.id})" class="deleteBtn" title="מחק סט"><i class="fas fa-trash"></i></button>
+<button onclick="openEditClusterModal('${cluster.id}')" title="ערוך סט"><i class="fas fa-pencil"></i></button>
+    <button onclick="openAddBooksModal('${cluster.id}')" title="הוסף ספרים לסט"><i class="fas fa-plus"></i></button>
+    <button class="deleteBtn" onclick="openRemoveBooksModal('${cluster.id}')" title="הסר ספרים מהסט"><i class="fas fa-minus"></i></button>
+    <button onclick="deleteCluster('${cluster.id}')" class="deleteBtn" title="מחק סט"><i class="fas fa-trash"></i></button>
+
       </td>
     `;
 
@@ -5155,11 +5215,13 @@ async function addBookToCluster(bookId) {
   fillClusterGradesFromBooks(cluster);
 
   try {
-    await fetch(`/api/2026/clusters/${cluster._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...userIdHeader },
-      body: JSON.stringify(cluster)
-    });
+
+await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈 במקום _id
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json', ...userIdHeader },
+  body: JSON.stringify(cluster)
+});
+
     renderClusterTable();
     renderAddBooksList();
   } catch (err) {
@@ -5175,11 +5237,13 @@ async function removeBookFromCluster(bookId) {
   cluster.bookIds = cluster.bookIds.filter(id => id !== bookId);
 
   try {
-    await fetch(`/api/2026/clusters/${cluster._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...userIdHeader },
-      body: JSON.stringify(cluster)
-    });
+
+await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json', ...userIdHeader },
+  body: JSON.stringify(cluster)
+});
+
     renderClusterTable();
     renderRemoveBooksList();
   } catch (err) {
@@ -5289,11 +5353,13 @@ async function saveEditedCluster() {
   const updated = { ...cluster, name: newName, grades: currentEditClusterGrades };
 
   try {
-    const res = await fetch(`/api/2026/clusters/${cluster._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...userIdHeader },
-      body: JSON.stringify(updated)
-    });
+
+const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json', ...userIdHeader },
+  body: JSON.stringify(updated)
+});
+
     if (!res.ok) throw new Error("שגיאה בעדכון סט");
 
     const saved = await res.json();
@@ -5317,10 +5383,12 @@ async function deleteCluster(clusterId) {
   if (!cluster) return alert("❌ לא נמצא הסט למחיקה");
 
   try {
-    const res = await fetch(`/api/2026/clusters/${cluster._id}`, {
-      method: 'DELETE',
-      headers: { ...userIdHeader }
-    });
+
+const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+  method: 'DELETE',
+  headers: { ...userIdHeader }
+});
+
     if (!res.ok) throw new Error("שגיאה במחיקה");
 
     clusters = clusters.filter(c => c.id !== clusterId);
