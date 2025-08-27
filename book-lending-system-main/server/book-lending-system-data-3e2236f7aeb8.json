@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "book-lending-system-data",
+  "private_key_id": "3e2236f7aeb8fb395f4e69f4e22c9bc9c100962b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCeiHjY0D8GlFFz\nTzE+/HzAIfzk1KAkf72hv48syXJnFOeXsEj8r/Zd2MB/2g8EPaV8ArwDT5XZkeZq\nxQ4UYA5F5Y4KGV5NkUEcb1QDYa8ppPewHwruxcoNCUBnE+YeYng6AcvVgfsYebDl\n8nb/kpoZ+PWs/c2TFoLv0rMQrD4c/DtD5sixY21fUs4f0YdzB4wCZm7Nb+zt+wM0\nsv36mH7dfE06MZNa8UYBmZUFhIow2DFjSehhw0c8mC07CfKj/tN5Oa6YHq/dhHY4\nwfI6kFmHOMwtXGAhQG8dTu7awBrWHRYtfTdgDkqHaf2eujoPbgBiOliCe1Kc0emn\n7rX0IMt/AgMBAAECggEANCkc8eFay1RjlDf7MQksFp9YMQZQhpHNF/oKJqdFT+tN\n49fpu9I9klUtySM7C58o4quXptM5r7NUh868OjH8oDzORj5gi87+CFgM4WvzkRUp\nNbaRB0zmlPF1UjT24wptGlDa+y3gKwZnENF9G8vljiQe2UNMr1eZz0SZDCRP74L8\n1oEWsdUculJ/ieA0D/zEYoIENvhEAX6iMymXjYeCMK00+YmVXjutX+GmR3ZdsMJt\nKnwEZdF9s8qshtua2kOu8zHFGObDSRGf13qc9NtqFSwSb4k4YPP3Ln4H5EoUO1Rw\nfLFGt8Z3idmUYADCdRKMI68GpyGT+l9v+IMtPC8K0QKBgQDelsCfSPv1ujxKrXgM\ngKy/UtE7aY09xpny7Ir5/qS4Lusi3xPhX27asx5CoVeZTTzUxMB+Bl2pZUwfj+I0\nYtghyTLDk56vomo3UUVYfAvdbwSwqfErR5PgnIZwH2XDDtcgb1JHCoQmcRgHrWPh\nVcuCWlmF6pvTZocf+8FqVeRMaQKBgQC2VExpXT8hgcoL3ZULNBG70vgTW/L8KOEb\n2Qj8K7yxRi6bT5rvowyaro0avrqcJ+HoP8hc+qDICAox0CW9fwjVPwrwcnMzUaMS\n4YV/4Yk7/VjJCrrt4FSL6NQZ+wwrkspNJ/zDU3i+lozeKu18Zy6tNUaHFZKxxrxy\nso/64gj7pwKBgFSCQ+u12AN5i76GkdedWvjgxpOaBYf4ySZT7IfxyDQtjBSXQYMF\nqp7Z9pkxjIKlsnzNno+6dwEDdp1dEXL2PDzHmMBsYYkpTs5lysBHiHGv3sX8H5Zg\n/KIAi4IySX5/OeoUmdZjBb1antb7W7qHylZZWzfe1P60JIVeHhbzOVRRAoGAD5zw\nXiVp/oiKsLFszeTLj/Xk4GODTyyA+k1/g3iLU/LaktoiPlsL/ULtOlkSycRwh97O\nXYfotLhbhyB32t5B92DKowRp8P8Qo9FECUta4RQ0wiJ1F2GaW9C4OPFSfXi4chr2\nfhNrx4ZE0dGDPJ/pU1O4kmC6ixallHzN74HjmwkCgYBcoVh0FOhNc4+j8XFof0gR\nobr12DF0RPk2Zxi8kq0Mxd5sWKZYCro6Ds8e5W3Pt9IHTSW7tnM4dy1ivThl7LOj\nPlt0nKrFJVoqgo4jyG/iotX1ztCoIgBFmT5C2kzlHoklzOhO5KW9FZ1+ztxEvHsg\nBwhULdj6pJmb8sdqCou4pA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "booklendingsystem@book-lending-system-data.iam.gserviceaccount.com",
+  "client_id": "112733053579046946330",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/booklendingsystem%40book-lending-system-data.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
