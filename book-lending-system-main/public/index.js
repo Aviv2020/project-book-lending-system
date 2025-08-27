@@ -1,5 +1,6 @@
 let currentEditIndex = null;
 let clusters = []; // מערך שמכיל את כל הסטים
+
 let selectedBookIdsForCluster = new Set(); // הספרים שנבחרו בסט החדש
 let selectedBookIdsRealtime = [];
 let selectedBooks = new Set();
@@ -3034,7 +3035,9 @@ async function confirmCharge() {
   const newCharges = [];
 
   selects.forEach(sel => {
+
     const type = sel.value; // הערך כבר באנגלית: lost/damaged/other
+
     if (!type || !pendingChargeStudent) return;
 
     const borrowId = sel.dataset.borrowId;
@@ -3054,6 +3057,8 @@ async function confirmCharge() {
         date: new Date().toISOString(),
         paid: false,
         borrowId
+        bookId
+
       };
       charges.push(charge);
       newCharges.push(charge);
@@ -3077,6 +3082,7 @@ async function confirmCharge() {
         body: JSON.stringify(charge)
       });
       if (!res.ok) throw new Error("שגיאה בשמירת החיוב");
+
 
       const saved = await res.json();
       charge.id = saved.id; // ✅ שמירה של id מהשרת לעדכון עתידי
@@ -3181,6 +3187,7 @@ async function clearStudentDebt(studentId) {
     c.paidDate = now;
 
     const borrowEntry = borrowed.find(b => b.id === c.borrowId);
+
     const book = books.find(bk => bk.id === c.bookId);
     const student = students.find(s => s.id === studentId);
 
@@ -3247,6 +3254,7 @@ async function clearStudentDebt(studentId) {
       }
     } catch (err) {
       console.error("❌ clearStudentDebt (charge):", err);
+
       alert("שגיאה בעדכון החוב בשרת");
     }
   }
@@ -3261,7 +3269,6 @@ async function clearStudentDebt(studentId) {
     renderStudentTable();
   }
 }
-
 
 function returnToCharge() {
   returnToChargeMode = false;
@@ -5099,6 +5106,7 @@ function renderClusterTable() {
     <button onclick="openAddBooksModal('${cluster.id}')" title="הוסף ספרים לסט"><i class="fas fa-plus"></i></button>
     <button class="deleteBtn" onclick="openRemoveBooksModal('${cluster.id}')" title="הסר ספרים מהסט"><i class="fas fa-minus"></i></button>
     <button onclick="deleteCluster('${cluster.id}')" class="deleteBtn" title="מחק סט"><i class="fas fa-trash"></i></button>
+
       </td>
     `;
 
@@ -5207,6 +5215,7 @@ async function addBookToCluster(bookId) {
   fillClusterGradesFromBooks(cluster);
 
   try {
+
 await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈 במקום _id
   method: 'PUT',
   headers: { 'Content-Type': 'application/json', ...userIdHeader },
@@ -5228,6 +5237,7 @@ async function removeBookFromCluster(bookId) {
   cluster.bookIds = cluster.bookIds.filter(id => id !== bookId);
 
   try {
+
 await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
   method: 'PUT',
   headers: { 'Content-Type': 'application/json', ...userIdHeader },
@@ -5343,6 +5353,7 @@ async function saveEditedCluster() {
   const updated = { ...cluster, name: newName, grades: currentEditClusterGrades };
 
   try {
+
 const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
   method: 'PUT',
   headers: { 'Content-Type': 'application/json', ...userIdHeader },
@@ -5372,6 +5383,7 @@ async function deleteCluster(clusterId) {
   if (!cluster) return alert("❌ לא נמצא הסט למחיקה");
 
   try {
+
 const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
   method: 'DELETE',
   headers: { ...userIdHeader }
