@@ -238,7 +238,6 @@
   </div>
 </div>
 
-<!-- אזור ניהול תלמידים -->
    <div id="studentsCreateTab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="studentsTab">
 <div class="container">
   <h2>➕ הוספת תלמיד</h2>
@@ -1075,30 +1074,4 @@ Violations may result in civil and/or criminal liability</b>
 </body>
 
 <script src="index.js"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script>
-  const socket = io("http://localhost:3000");
-
-const entities = [
-  "students",
-  "books",
-  "borrowed",
-  "returned",
-  "charges",
-  "volunteers",
-  "clusters"
-];
-
-// מאזינים לכל סוגי השינויים
-entities.forEach(entity => {
-  socket.on(`${entity}Changed`, (data) => {
-    console.log(`📢 ${entity} changed – refreshing`, data);
-
-    refreshData();
-    // פונקציית רענון לפי ס
-  });
-});
-
-</script>
-
 </html>
