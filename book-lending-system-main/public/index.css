@@ -1,17 +1,12 @@
 
     @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
 @font-face {
-  font-family: 'ElegantSans';
-  src: url('/fonts/ElegantSans.woff2') format('woff2'),
-       url('/fonts/ElegantSans.woff') format('woff');
+  font-family: 'system-font';
+  src: url('fonts/MyCustomFont.woff2') format('woff2'),
+       url('fonts/MyCustomFont.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
-
-body {
-  font-family: 'ElegantSans', Arial, sans-serif;
-}
-
 
     body { font-family: Arial, 'system-font'; direction: rtl; background: #f9f9f9; padding: 20px; }
     .container { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
