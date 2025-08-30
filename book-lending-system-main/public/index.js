@@ -4,7 +4,6 @@ let selectedBookIdsForCluster = new Set(); // הספרים שנבחרו בסט �
 let selectedBookIdsRealtime = [];
 let selectedBooks = new Set();
 
-
 function editStudent(index) {
   currentEditIndex = index;
   const student = students[index];
@@ -819,8 +818,7 @@ function printStudentCard(index) {
       <p><b>ת"ז:</b> ${student.id}</p>
       <p><b>כיתה:</b> ${student.classroom} | <b>בי"ס:</b> ${student.school}</p>
 
-      ${
-        (booksStillBorrowed.length > 0 || studentUnpaidCharges.length > 0)
+      ${(booksStillBorrowed.length > 0 || studentUnpaidCharges.length > 0)
         ? `
           ${booksStillBorrowed.length > 0 ? `
             <h4 style="margin-top: 15px;">ספרים שטרם הוחזרו:</h4>
@@ -1889,10 +1887,10 @@ function exportStyledBooksToExcel() {
       if (!ws[cell_ref]) continue;
       if (!ws[cell_ref].s) ws[cell_ref].s = {};
       ws[cell_ref].s.border = {
-        top:    { style: "thin", color: { rgb: "000000" } },
+        top: { style: "thin", color: { rgb: "000000" } },
         bottom: { style: "thin", color: { rgb: "000000" } },
-        left:   { style: "thin", color: { rgb: "000000" } },
-        right:  { style: "thin", color: { rgb: "000000" } }
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } }
       };
     }
   }
