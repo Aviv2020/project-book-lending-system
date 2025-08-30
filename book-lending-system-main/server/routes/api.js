@@ -17,6 +17,8 @@ const Returned = require('../models/Returned');
 const Charge = require('../models/Charge');
 const Volunteer = require('../models/Volunteer');
 const Cluster = require('../models/Cluster');
+//map's model
+const Address = require('../models/Address');
 
 // שנה מינימלית לשימוש
 const MIN_YEAR = 2026;
@@ -120,6 +122,7 @@ router.put('/:year/:collection/:id', async (req, res) => {
   }
 });
 
+
 /**
  * 🔹 PUT /:year/:collection
  * החלפת כל הקולקציה לשנה מסוימת
@@ -222,6 +225,8 @@ function getModel(collection) {
     case 'charges': return Charge;
     case 'volunteers': return Volunteer;
     case 'clusters': return Cluster;
+    //map's case
+    case 'Address': return Address;
     default: return null;  // במקום throw
   }
 }
@@ -279,6 +284,35 @@ router.get('/:year/stats/:type', async (req, res) => {
   }
 });
 
+//addresses's functionality
+
+router.post('/address/delete', async (req, res) => {
+  try{
+    const { lat, lng } = req.body;
+    const Model = getModel('address');
+    const result = await Model.deleteOne({lat: lat, lng: lng});
+    return res.json(result);
+
+  }catch(err){
+    console.error("addresse's delete error:", err);
+    res.status(500).json({ error: "Server error", details: err.message })
+  }
+});
+
+router.post('/address/save', async (req, res) => {
+  try{
+    const { lat, lng } = req.body;
+    const Model = getModel('address');
+    const result = await Model.insertOne({lat: lat, lng: lng});
+    return res.json(result);
+
+  }catch(err){
+    console.error("addresse's save error:", err);
+    res.status(500).json({ error: "Server error", details: err.message })
+  }
+});
+
+router.get('')
 
 
 module.exports = router;

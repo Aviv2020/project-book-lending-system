@@ -3,6 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');   // ⬅️ חדש
 const app = express();
 const apiRoutes = require('./routes/api');
+const goolgeMapsRoutes = require('./routes/googleMaps');
 require('dotenv').config({ path: path.join(__dirname, '../access.env') });
 
 console.log('🔁 התחלת server.js');
@@ -25,6 +26,8 @@ app.use(express.static(path.join(__dirname, '../public'), { index: 'login.html' 
 
 // ניתוב של כל קריאות /api ל־routes/api.js
 app.use('/api', apiRoutes);
+//קריאות ל googleMaps
+app.use('/maps', goolgeMapsRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
