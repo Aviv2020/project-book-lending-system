@@ -254,59 +254,59 @@ async function saveEditedBook() {
 }
 
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const yearInput = document.getElementById('yearSelect');  // שדה הקלט מסוג number
-    const yearDisplay = document.getElementById('currentYearDisplay');
-    const minYear = 2026;
+window.addEventListener('DOMContentLoaded', () => {
+  const yearInput = document.getElementById('yearSelect');  // שדה הקלט מסוג number
+  const yearDisplay = document.getElementById('currentYearDisplay');
+  const minYear = 2026;
 
-    // טען את השנה מ־localStorage, או הגדר מינימום
-    let selectedYear = parseInt(localStorage.getItem('selectedYear'), 10);
-    if (isNaN(selectedYear) || selectedYear < minYear) {
-      selectedYear = minYear;
-      localStorage.setItem('selectedYear', selectedYear.toString());
+  // טען את השנה מ־localStorage, או הגדר מינימום
+  let selectedYear = parseInt(localStorage.getItem('selectedYear'), 10);
+  if (isNaN(selectedYear) || selectedYear < minYear) {
+    selectedYear = minYear;
+    localStorage.setItem('selectedYear', selectedYear.toString());
+  }
+
+  // עדכן את שדה הקלט והתצוגה
+  yearInput.value = selectedYear;
+  yearDisplay.textContent = selectedYear;
+
+  // מאזין לשינויים בקלט (input) – רק אם הערך חוקי
+  yearInput.addEventListener('input', () => {
+    let val = parseInt(yearInput.value, 10);
+
+    if (isNaN(val) || val < minYear) {
+      yearDisplay.textContent = 'ערך לא חוקי';
+      return;
     }
 
-    // עדכן את שדה הקלט והתצוגה
-    yearInput.value = selectedYear;
-    yearDisplay.textContent = selectedYear;
+    localStorage.setItem('selectedYear', val.toString());
+    yearDisplay.textContent = val;
 
-    // מאזין לשינויים בקלט (input) – רק אם הערך חוקי
-    yearInput.addEventListener('input', () => {
-      let val = parseInt(yearInput.value, 10);
-
-      if (isNaN(val) || val < minYear) {
-        yearDisplay.textContent = 'ערך לא חוקי';
-        return;
-      }
-
-      localStorage.setItem('selectedYear', val.toString());
-      yearDisplay.textContent = val;
-
-      loadDataForYear(val);  // טען מחדש את הנתונים לפי השנה
-    });
-
-    // טען את הנתונים בתחילה לפי השנה שהוגדרה
-    loadDataForYear(selectedYear);
+    loadDataForYear(val);  // טען מחדש את הנתונים לפי השנה
   });
 
-  function loadDataForYear(year) {
-    console.log("טוען נתונים לשנה", year);
-    loadData(); // פונקציה קיימת שמטענת את הנתונים שלך
-  }
+  // טען את הנתונים בתחילה לפי השנה שהוגדרה
+  loadDataForYear(selectedYear);
+});
 
-  function yearKey(file) {
-    const minYear = 2026;
-    const maxYear = new Date().getFullYear() + 1;
-    let year = parseInt(localStorage.getItem('selectedYear'), 10);
+function loadDataForYear(year) {
+  console.log("טוען נתונים לשנה", year);
+  loadData(); // פונקציה קיימת שמטענת את הנתונים שלך
+}
 
-    if (isNaN(year) || year < minYear) year = minYear;
-    if (year > maxYear) year = maxYear;
+function yearKey(file) {
+  const minYear = 2026;
+  const maxYear = new Date().getFullYear() + 1;
+  let year = parseInt(localStorage.getItem('selectedYear'), 10);
 
-    return `/api/${year}/${file}`;
-  }
+  if (isNaN(year) || year < minYear) year = minYear;
+  if (year > maxYear) year = maxYear;
+
+  return `/api/${year}/${file}`;
+}
 
 
-  document.getElementById('borrowerTypeSelect').addEventListener('change', e => {
+document.getElementById('borrowerTypeSelect').addEventListener('change', e => {
   const val = e.target.value;
   const nameInputLabel = document.getElementById('borrowerNameInput').parentElement;
   if (val === 'student') {
@@ -375,9 +375,9 @@ function printReceipt() {
   };
 }
 
-  // סינון תלמידים בלשונית החזרה
+// סינון תלמידים בלשונית החזרה
 
-  const ITEMS_PER_PAGE = 50;
+const ITEMS_PER_PAGE = 50;
 
 let currentStudentPage = 1;
 let currentBookPage = 1;
@@ -463,12 +463,12 @@ document.getElementById('levelFilterReturn').addEventListener('change', () => {
 
 
 
-  // פונקציה לבחירת כל תיבות הסימון
-  function selectAllCheckboxes(containerId, checked) {
-    const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
-    checkboxes.forEach(cb => cb.checked = checked);
-  }
-  
+// פונקציה לבחירת כל תיבות הסימון
+function selectAllCheckboxes(containerId, checked) {
+  const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
+  checkboxes.forEach(cb => cb.checked = checked);
+}
+
 let students = [];
 let books = [];
 let borrowed = [];
@@ -819,7 +819,7 @@ function printStudentCard(index) {
       <p><b>כיתה:</b> ${student.classroom} | <b>בי"ס:</b> ${student.school}</p>
 
       ${(booksStillBorrowed.length > 0 || studentUnpaidCharges.length > 0)
-        ? `
+      ? `
           ${booksStillBorrowed.length > 0 ? `
             <h4 style="margin-top: 15px;">ספרים שטרם הוחזרו:</h4>
             <ul style="text-align: right; font-size: 14px;">
@@ -833,8 +833,8 @@ function printStudentCard(index) {
             </ul>
           ` : ''}
         `
-        : `<p style="margin-top: 15px; font-size: 16px; color: green;"><b>החזיר/ה הכל</b></p>`
-      }
+      : `<p style="margin-top: 15px; font-size: 16px; color: green;"><b>החזיר/ה הכל</b></p>`
+    }
     </div>
   `;
 
@@ -938,7 +938,7 @@ async function confirmBulkLend() {
 
 
 
-    function selectAllCheckboxes(containerId, checked) {
+function selectAllCheckboxes(containerId, checked) {
   const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
   checkboxes.forEach(cb => cb.checked = checked);
 }
@@ -1139,7 +1139,7 @@ function renderStudentTable(page = currentStudentPage) {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #ddd';
 
-tr.innerHTML = `
+    tr.innerHTML = `
   <td style="padding: 10px; max-width: 180px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ${nameStyleColor}; vertical-align: top;" title="${s.name}">${s.name}</td>
   <td style="padding: 10px; min-width: 100px; text-align: center; vertical-align: top;">${s.id}</td>
   <td style="padding: 10px; min-width: 60px; text-align: center; vertical-align: top;">${s.classroom}</td>
@@ -1418,19 +1418,19 @@ function exportFilteredStudents() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids })
   })
-  .then(response => {
-    if (!response.ok) throw new Error("שגיאה ביצוא התלמידים");
-    return response.blob();
-  })
-  .then(blob => {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `filtered-students-${year}.xlsx`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  })
-  .catch(err => alert(err.message));
+    .then(response => {
+      if (!response.ok) throw new Error("שגיאה ביצוא התלמידים");
+      return response.blob();
+    })
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `filtered-students-${year}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    })
+    .catch(err => alert(err.message));
 }
 
 
@@ -1501,28 +1501,28 @@ function exportFilteredVolunteers() {
     return;
   }
 
-fetch('/api/export-volunteers', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ volunteers: filteredVolunteers })
-})
-.then(res => {
-  if (!res.ok) throw new Error('Error exporting volunteers');
-  return res.blob();
-})
-.then(blob => {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'aggregated-volunteers.xlsx';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-})
-.catch(err => {
-  console.error(err);
-  alert('Error exporting volunteers');
-});
+  fetch('/api/export-volunteers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ volunteers: filteredVolunteers })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Error exporting volunteers');
+      return res.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'aggregated-volunteers.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Error exporting volunteers');
+    });
 
 }
 
@@ -1692,79 +1692,79 @@ function renderStudentPagination(totalPages) {
 }
 
 
- 
-  const tbody = document.querySelector('#studentTable tbody');
-  const search = document.getElementById('studentTableSearch').value.toLowerCase();
-  tbody.innerHTML = '';
 
-  const filterGrade = document.getElementById('filterGrade').value;
-  const filterClassroom = document.getElementById('filterClassroom').value.toLowerCase();
-  const filterSubject = document.getElementById('filterSubject').value.toLowerCase();
-  const filterLevel = document.getElementById('filterLevel').value;
+const tbody = document.querySelector('#studentTable tbody');
+const search = document.getElementById('studentTableSearch').value.toLowerCase();
+tbody.innerHTML = '';
 
-  students.forEach((s, i) => {
-    const values = [s.name, s.id, s.classroom, s.school];
+const filterGrade = document.getElementById('filterGrade').value;
+const filterClassroom = document.getElementById('filterClassroom').value.toLowerCase();
+const filterSubject = document.getElementById('filterSubject').value.toLowerCase();
+const filterLevel = document.getElementById('filterLevel').value;
 
-    const hasMatchingBook = borrowed.some(b => {
-      if (b.student.id !== s.id) return false;
+students.forEach((s, i) => {
+  const values = [s.name, s.id, s.classroom, s.school];
 
-      const subjectMatch = !filterSubject || (b.book.subject || '').toLowerCase().trim().includes(filterSubject.trim());
-      const levelMatch =
-        !filterLevel ||
-        b.book.level === filterLevel ||
-        (!b.book.level && filterLevel === '') ||
-        (b.book.level === 'כללי' && filterLevel === '');
+  const hasMatchingBook = borrowed.some(b => {
+    if (b.student.id !== s.id) return false;
 
-      return subjectMatch && levelMatch;
-    });
+    const subjectMatch = !filterSubject || (b.book.subject || '').toLowerCase().trim().includes(filterSubject.trim());
+    const levelMatch =
+      !filterLevel ||
+      b.book.level === filterLevel ||
+      (!b.book.level && filterLevel === '') ||
+      (b.book.level === 'כללי' && filterLevel === '');
 
-    const passSearch = values.some(v => (v || '').toLowerCase().includes(search)) || search === '';
-    const passGrade = !filterGrade || s.classroom?.startsWith(filterGrade);
-    const passClassroom = !filterClassroom || (s.classroom || '').toLowerCase() === filterClassroom;
-    const passSubjectAndLevel = (!filterSubject && !filterLevel) || hasMatchingBook;
+    return subjectMatch && levelMatch;
+  });
 
-    if (passSearch && passGrade && passClassroom && passSubjectAndLevel) {
-      const tr = document.createElement('tr');
+  const passSearch = values.some(v => (v || '').toLowerCase().includes(search)) || search === '';
+  const passGrade = !filterGrade || s.classroom?.startsWith(filterGrade);
+  const passClassroom = !filterClassroom || (s.classroom || '').toLowerCase() === filterClassroom;
+  const passSubjectAndLevel = (!filterSubject && !filterLevel) || hasMatchingBook;
 
-      const borrowedBooks = borrowed
-        .filter(b => b.student.id === s.id && !returned.some(r => r.id === b.id))
-        .map(b => `${b.book.name} (${b.book.subject})`);
+  if (passSearch && passGrade && passClassroom && passSubjectAndLevel) {
+    const tr = document.createElement('tr');
 
-      const borrowedText = borrowedBooks.length > 0 ? borrowedBooks.join(', ') : "החזיר הכל";
+    const borrowedBooks = borrowed
+      .filter(b => b.student.id === s.id && !returned.some(r => r.id === b.id))
+      .map(b => `${b.book.name} (${b.book.subject})`);
 
-      // ✅ תיקון: לא מציגים תאריכים כפולים באותה השאלה מרוכזת (bulkId)
-      const seenBulkIds = new Set();
-      const borrowTimes = borrowed
-        .filter(b => b.student.id === s.id)
-        .filter(b => {
-          if (b.bulkId && seenBulkIds.has(b.bulkId)) return false;
-          if (b.bulkId) {
-            seenBulkIds.add(b.bulkId);
-            return true;
-          }
-          return true; // הצג גם אם אין bulkId
-        })
-        .map(b => new Date(b.date).toLocaleString('he-IL'));
+    const borrowedText = borrowedBooks.length > 0 ? borrowedBooks.join(', ') : "החזיר הכל";
 
-      const borrowTimesText = borrowTimes.length > 0 ? borrowTimes.join('<br>') : 'אין השאלות';
+    // ✅ תיקון: לא מציגים תאריכים כפולים באותה השאלה מרוכזת (bulkId)
+    const seenBulkIds = new Set();
+    const borrowTimes = borrowed
+      .filter(b => b.student.id === s.id)
+      .filter(b => {
+        if (b.bulkId && seenBulkIds.has(b.bulkId)) return false;
+        if (b.bulkId) {
+          seenBulkIds.add(b.bulkId);
+          return true;
+        }
+        return true; // הצג גם אם אין bulkId
+      })
+      .map(b => new Date(b.date).toLocaleString('he-IL'));
 
-const seenReturnBulkIds = new Set();
-const returnTimes = returned
-  .filter(r => r.student.id === s.id)
-  .filter(r => {
-    if (r.bulkId && seenReturnBulkIds.has(r.bulkId)) return false;
-    if (r.bulkId) {
-      seenReturnBulkIds.add(r.bulkId);
-      return true;
-    }
-    return true; // הצג גם אם אין bulkId
-  })
-  .map(r => new Date(r.returnDate).toLocaleString('he-IL'));
+    const borrowTimesText = borrowTimes.length > 0 ? borrowTimes.join('<br>') : 'אין השאלות';
+
+    const seenReturnBulkIds = new Set();
+    const returnTimes = returned
+      .filter(r => r.student.id === s.id)
+      .filter(r => {
+        if (r.bulkId && seenReturnBulkIds.has(r.bulkId)) return false;
+        if (r.bulkId) {
+          seenReturnBulkIds.add(r.bulkId);
+          return true;
+        }
+        return true; // הצג גם אם אין bulkId
+      })
+      .map(r => new Date(r.returnDate).toLocaleString('he-IL'));
 
 
-      const returnTimesText = returnTimes.length > 0 ? returnTimes.join('<br>') : 'אין החזרות';
+    const returnTimesText = returnTimes.length > 0 ? returnTimes.join('<br>') : 'אין החזרות';
 
-      tr.innerHTML = `
+    tr.innerHTML = `
 <td style="padding: 10px; max-width: 180px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${s.name}">${s.name}</td>
 <td style="padding: 10px; min-width: 100px; text-align: center;">${s.id}</td>
 <td style="padding: 10px; min-width: 60px; text-align: center;">${s.classroom}</td>
@@ -1780,10 +1780,10 @@ const returnTimes = returned
   <button onclick="viewStudentDetails(${i})">צפייה</button>
 </td>
       `;
-      tr.style.borderBottom = '1px solid #ddd';
-      tbody.appendChild(tr);
-    }
-  });
+    tr.style.borderBottom = '1px solid #ddd';
+    tbody.appendChild(tr);
+  }
+});
 function exportSingleStudent(index) {
   //
   const student = students[index];
@@ -1848,7 +1848,7 @@ function exportStyledBooksToExcel() {
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  
+
   filteredBooks.forEach((book, i) => {
     const rowIndex = i + 1;
     const row = [
@@ -1862,7 +1862,7 @@ function exportStyledBooksToExcel() {
       book.price || '',
       book.note || ''
     ];
-    
+
     XLSX.utils.sheet_add_aoa(ws, [row], { origin: -1 });
 
     // צבע רקע צהוב לתא הערות אם יש הערה
@@ -1935,7 +1935,7 @@ function exportFilteredBooks() {
 
 
 function renderBookTable(page) {
-  
+
   if (page !== undefined) {
     currentBookPage = page;
   }
@@ -2175,11 +2175,11 @@ function renderBookPagination(totalPages) {
 }
 
 
-  const toggleBtn = document.getElementById('toggleDarkModeBtn');
-  toggleBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    toggleBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ מצב רגיל' : '🌙 מצב כהה';
-  });
+const toggleBtn = document.getElementById('toggleDarkModeBtn');
+toggleBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  toggleBtn.textContent = document.body.classList.contains('dark-mode') ? '☀️ מצב רגיל' : '🌙 מצב כהה';
+});
 
 
 let currentAddCopiesIndex = null;
@@ -2355,8 +2355,8 @@ renderBookTable();
 const userIdHeader = { 'x-user-id': 'some-user-id' };
 
 async function loadData() {
-    const loading = document.getElementById('globalLoading');
-    loading.style.display = 'flex';
+  const loading = document.getElementById('globalLoading');
+  loading.style.display = 'flex';
   try {
     // ✅ טען את הסטים מהשרת
     clusters = await fetch(yearKey('clusters'), { headers: userIdHeader }).then(res => res.json());
@@ -2380,7 +2380,7 @@ async function loadData() {
 }
 
 async function saveData() {
-  
+
   if (
     !students.length &&
     !books.length &&
@@ -2424,11 +2424,11 @@ async function saveData() {
         body: JSON.stringify(volunteers),
       }),
       // ✅ הוספת שמירת clusters
-fetch('/api/2026/clusters', {
-  method: 'PUT',  // לא POST
-  headers: { 'Content-Type': 'application/json', ...userIdHeader },
-  body: JSON.stringify(clusters),
-}),
+      fetch('/api/2026/clusters', {
+        method: 'PUT',  // לא POST
+        headers: { 'Content-Type': 'application/json', ...userIdHeader },
+        body: JSON.stringify(clusters),
+      }),
 
     ]);
   } catch (error) {
@@ -2844,7 +2844,7 @@ function updateBorrowPurchaseButtons() {
 document.getElementById('filteredStudentsSelect').addEventListener('change', () => {
   updateBorrowPurchaseButtons();
   selectedBooks.clear();           // איפוס רשימת הספרים שנבחרו
-  renderSelectedBooksPreview(); 
+  renderSelectedBooksPreview();
   filterBooksBorrow();
 });
 
@@ -3009,7 +3009,7 @@ function openChargeModal() {
       const select = document.createElement('select');
       select.dataset.borrowId = entry.id;
       select.dataset.bookId = bookId;
-select.innerHTML = `
+      select.innerHTML = `
   <option value="">ללא חיוב</option>
   <option value="lost">אבד</option>
   <option value="damaged">בלאי</option>
@@ -3133,7 +3133,7 @@ async function deleteFilteredStudents() {
 
 window.addEventListener('DOMContentLoaded', () => {
   filterStudents();
-    document.getElementById('deepSearchCheckbox').addEventListener('change', filterBooksBorrow);
+  document.getElementById('deepSearchCheckbox').addEventListener('change', filterBooksBorrow);
 
 });
 
@@ -3325,7 +3325,7 @@ document.querySelectorAll('input[type=checkbox][data-book-id]').forEach(cb => {
 
 function purchaseBook() {
   selectedBookIdsRealtime = [];
-renderSelectedBooksPreview();
+  renderSelectedBooksPreview();
 
   const studentIdx = document.getElementById('filteredStudentsSelect').value;
   if (studentIdx === '') return alert("בחר תלמיד");
@@ -3350,7 +3350,7 @@ renderSelectedBooksPreview();
 }
 function borrowBook() {
   selectedBookIdsRealtime = [];
-renderSelectedBooksPreview();
+  renderSelectedBooksPreview();
 
   const studentIdx = document.getElementById('filteredStudentsSelect').value;
   if (studentIdx === '') return alert("בחר תלמיד");
@@ -3578,8 +3578,8 @@ async function drawBooksBySubject() {
     .attr("width", width)
     .attr("height", height);
 
-const chartGroup = svg.append("g")
-  .attr("transform", `translate(${width/2},${height/2})`);
+  const chartGroup = svg.append("g")
+    .attr("transform", `translate(${width / 2},${height / 2})`);
 
 
   const color = d3.scaleOrdinal(d3.schemeTableau10);
@@ -3592,8 +3592,8 @@ const chartGroup = svg.append("g")
     .enter()
     .append("path")
     .attr("fill", d => color(d.data._id))
-    .each(function(d) { this._current = d; })
-    .on("mouseover", function(event, d) {
+    .each(function (d) { this._current = d; })
+    .on("mouseover", function (event, d) {
       d3.select(this)
         .interrupt() // ✅ עצירה של transition קודם
         .transition()
@@ -3605,7 +3605,7 @@ const chartGroup = svg.append("g")
         .style("left", (event.pageX + 15) + "px")
         .style("top", (event.pageY - 28) + "px");
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       d3.select(this)
         .interrupt() // ✅ עצירה של transition קודם
         .transition()
@@ -3616,7 +3616,7 @@ const chartGroup = svg.append("g")
     })
     .transition()
     .duration(1000)
-    .attrTween("d", function(d) {
+    .attrTween("d", function (d) {
       const i = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
       return t => arc(i(t));
     });
@@ -3634,8 +3634,8 @@ async function drawBooksByType() {
     .attr("width", width)
     .attr("height", height);
 
-const chartGroup = svg.append("g")
-  .attr("transform", `translate(${width/2},${height/2})`);
+  const chartGroup = svg.append("g")
+    .attr("transform", `translate(${width / 2},${height / 2})`);
 
 
   const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -3649,8 +3649,8 @@ const chartGroup = svg.append("g")
     .append("path")
     .attr("fill", d => color(d.data._id))
     .attr("d", arc)
-    .each(function(d) { this._current = d; })
-    .on("mouseover", function(event, d) {
+    .each(function (d) { this._current = d; })
+    .on("mouseover", function (event, d) {
       d3.select(this)
         .interrupt() // ✅ עוצר כל transition קיים
         .transition()
@@ -3662,7 +3662,7 @@ const chartGroup = svg.append("g")
         .style("left", (event.pageX + 15) + "px")
         .style("top", (event.pageY - 28) + "px");
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       d3.select(this)
         .interrupt() // ✅ עוצר כל transition קיים
         .transition()
@@ -3673,7 +3673,7 @@ const chartGroup = svg.append("g")
     })
     .transition()
     .duration(1000)
-    .attrTween("d", function(d) {
+    .attrTween("d", function (d) {
       const i = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
       return t => arc(i(t));
     });
@@ -3740,7 +3740,7 @@ async function finalizeBorrow() {
     student,
     studentId: student.id,
     bookIds: filteredBookIds,
-    returned: filteredBookIds.map(() => false), 
+    returned: filteredBookIds.map(() => false),
     date: now,
     signature: signatureData,
     bulkId,
@@ -3772,49 +3772,49 @@ async function finalizeBorrow() {
 
     // ✅ שליחת מייל בהתאם לסוג ההשאלה
     // ✅ שליחת מייל בהתאם לסוג ההשאלה
-if (student.email && student.email !== "non") {
-  const isFirstBorrow = !borrowed.some(
-    b => b.studentId === student.id && b.id !== savedBorrow.id
-  );
+    if (student.email && student.email !== "non") {
+      const isFirstBorrow = !borrowed.some(
+        b => b.studentId === student.id && b.id !== savedBorrow.id
+      );
 
-  // רשימת כל הספרים המושאלים כרגע לסטודנט
-  const activeBooks = borrowed
-    .filter(b => b.studentId === student.id)
-    .flatMap(b =>
-      b.bookIds
-        .map((id, idx) => (!b.returned[idx] ? books.find(bk => bk.id === id)?.name : null))
-        .filter(Boolean)
-    );
+      // רשימת כל הספרים המושאלים כרגע לסטודנט
+      const activeBooks = borrowed
+        .filter(b => b.studentId === student.id)
+        .flatMap(b =>
+          b.bookIds
+            .map((id, idx) => (!b.returned[idx] ? books.find(bk => bk.id === id)?.name : null))
+            .filter(Boolean)
+        );
 
-  try {
-    if (isFirstBorrow) {
-      // מייל השאלה ראשונה
-      await fetch('/api/email/sendFirstBorrow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...userIdHeader },
-        body: JSON.stringify({
-          email: student.email,
-          name: student.name,
-          date: new Date(savedBorrow.date).toLocaleDateString('he-IL'),
-          books: activeBooks   // ✅ כל הספרים המושאלים כרגע
-        })
-      });
-    } else {
-      // מייל עדכון
-      await fetch('/api/email/sendFollowUpBorrow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...userIdHeader },
-        body: JSON.stringify({
-          email: student.email,
-          name: student.name,
-          books: activeBooks   // ✅ כל הספרים המושאלים כרגע
-        })
-      });
+      try {
+        if (isFirstBorrow) {
+          // מייל השאלה ראשונה
+          await fetch('/api/email/sendFirstBorrow', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...userIdHeader },
+            body: JSON.stringify({
+              email: student.email,
+              name: student.name,
+              date: new Date(savedBorrow.date).toLocaleDateString('he-IL'),
+              books: activeBooks   // ✅ כל הספרים המושאלים כרגע
+            })
+          });
+        } else {
+          // מייל עדכון
+          await fetch('/api/email/sendFollowUpBorrow', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...userIdHeader },
+            body: JSON.stringify({
+              email: student.email,
+              name: student.name,
+              books: activeBooks   // ✅ כל הספרים המושאלים כרגע
+            })
+          });
+        }
+      } catch (mailErr) {
+        console.error("❌ שליחת מייל נכשלה:", mailErr);
+      }
     }
-  } catch (mailErr) {
-    console.error("❌ שליחת מייל נכשלה:", mailErr);
-  }
-}
 
   } catch (err) {
     console.error("❌ finalizeBorrow:", err);
@@ -3965,7 +3965,7 @@ function filterBooksBorrow() {
 }
 
 
-let canvas, ctx, drawing=false;
+let canvas, ctx, drawing = false;
 
 window.onload = () => {
   // התחלת החתימה
@@ -3996,11 +3996,11 @@ window.onload = () => {
 
   // נטענת רק אחרי טעינת הדף המלאה:
   window.addEventListener("DOMContentLoaded", () => {
-  loadData().then(() => {
-    console.log("✅ נתונים נטענו – מוכן לשימוש");
-    // אל תקרא ל-saveData() כאן!
+    loadData().then(() => {
+      console.log("✅ נתונים נטענו – מוכן לשימוש");
+      // אל תקרא ל-saveData() כאן!
+    });
   });
-});
   filterStudents();
   filterBooks();
   renderStudentTable();
@@ -4315,7 +4315,7 @@ function appendClusterCheckbox(cluster) {
 
 
 toggleBtn.onclick = () => {
-  if(getCurrentTabId() !== 'borrowTab') return;
+  if (getCurrentTabId() !== 'borrowTab') return;
   toggleClusterBooks(cluster.id);
   toggleBtn.textContent = booksContainer.classList.contains('hidden') ? '⬇️ הצג ספרים' : '⬆️ הסתר ספרים';
 };
@@ -4365,41 +4365,41 @@ function appendBookCheckbox(b) {
 
 
 const input = document.getElementById('gradeTagsInput');
-  const container = document.getElementById('gradeTagsContainer');
-  const hidden = document.getElementById('bookGrade');
-  const tags = new Set();
+const container = document.getElementById('gradeTagsContainer');
+const hidden = document.getElementById('bookGrade');
+const tags = new Set();
 
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const raw = input.value.trim().replace(/[״"׳']/g, '');
-      const tag = raw.replace(/\s+/g, '');
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const raw = input.value.trim().replace(/[״"׳']/g, '');
+    const tag = raw.replace(/\s+/g, '');
 
-      if (tag && !tags.has(tag)) {
-        tags.add(tag);
-        renderTags();
-      }
-
-      input.value = '';
+    if (tag && !tags.has(tag)) {
+      tags.add(tag);
+      renderTags();
     }
+
+    input.value = '';
+  }
+});
+
+function renderTags() {
+  container.innerHTML = '';
+  tags.forEach(tag => {
+    const el = document.createElement('span');
+    el.className = 'tag';
+    el.innerHTML = `${tag} <span class="remove">×</span>`;
+    el.querySelector('.remove').addEventListener('click', () => {
+      tags.delete(tag);
+      renderTags();
+    });
+    container.appendChild(el);
   });
 
-  function renderTags() {
-    container.innerHTML = '';
-    tags.forEach(tag => {
-      const el = document.createElement('span');
-      el.className = 'tag';
-      el.innerHTML = `${tag} <span class="remove">×</span>`;
-      el.querySelector('.remove').addEventListener('click', () => {
-        tags.delete(tag);
-        renderTags();
-      });
-      container.appendChild(el);
-    });
-
-    // שמירה לשדה הסמוי בפורמט CSV
-    hidden.value = Array.from(tags).join(', ');
-  }
+  // שמירה לשדה הסמוי בפורמט CSV
+  hidden.value = Array.from(tags).join(', ');
+}
 
 async function returnBook() {
   const selectedPairs = Array.from(document.querySelectorAll('#returnBooksSelect input[type="checkbox"]:checked'))
@@ -4411,7 +4411,7 @@ async function returnBook() {
     return;
   }
 
-    loading = document.getElementById('globalLoading');
+  loading = document.getElementById('globalLoading');
 
   const returnDate = new Date().toISOString();
   const bulkId = `return-${Date.now()}`;
@@ -4512,9 +4512,8 @@ function showError(msg) {
 
 
 
-function closeBorrowModal()
-{
-    document.getElementById('confirmBorrowModal').style.display = 'none';
+function closeBorrowModal() {
+  document.getElementById('confirmBorrowModal').style.display = 'none';
 }
 
 async function deleteStudentFromTable(index) {
@@ -4787,81 +4786,81 @@ function importExcel(event, type) {
       showSuccess(`ייבוא תלמידים הצליח ✅ נוספו ${addedCount}, עודכנו ${updatedCount}.`);
     }
 
-else if (type === 'books') {
-  const idx = {
-    name: headers.indexOf("שם הספר"),
-    subject: headers.indexOf("מקצוע"),
-    grade: headers.indexOf("שכבת גיל"),
-    level: headers.indexOf("רמת לימוד"),
-    volume: headers.indexOf("כרך"),
-    publisher: headers.indexOf("שם הוצאה"),
-    type: headers.indexOf("סוג ספר"),
-    note: headers.indexOf("הערות"),
-    price: headers.indexOf("עלות"),
-    stockCount: headers.indexOf("כמות במלאי") // ✅ חדש
-  };
+    else if (type === 'books') {
+      const idx = {
+        name: headers.indexOf("שם הספר"),
+        subject: headers.indexOf("מקצוע"),
+        grade: headers.indexOf("שכבת גיל"),
+        level: headers.indexOf("רמת לימוד"),
+        volume: headers.indexOf("כרך"),
+        publisher: headers.indexOf("שם הוצאה"),
+        type: headers.indexOf("סוג ספר"),
+        note: headers.indexOf("הערות"),
+        price: headers.indexOf("עלות"),
+        stockCount: headers.indexOf("כמות במלאי") // ✅ חדש
+      };
 
-  let addedBooks = 0;
+      let addedBooks = 0;
 
-  dataRows.forEach(row => {
-    const name = idx.name !== -1 ? row[idx.name]?.toString().trim() || "" : "";
-    const subject = idx.subject !== -1 ? row[idx.subject]?.toString().trim() || "" : "";
-    const grade = idx.grade !== -1 ? row[idx.grade]?.toString().trim() || "" : "";
-    const level = idx.level !== -1 ? row[idx.level]?.toString().trim() || "כללי" : "כללי";
-    const volume = idx.volume !== -1 ? row[idx.volume]?.toString().trim() || "" : "";
-    const publisher = idx.publisher !== -1 ? row[idx.publisher]?.toString().trim() || "" : "";
-    const typeValue = idx.type !== -1 ? row[idx.type]?.toString().trim() || "" : "";
-    const note = idx.note !== -1 ? row[idx.note]?.toString().trim() || "" : "";
-    
-    // מחיר
-    const priceRaw = idx.price !== -1 ? row[idx.price] : null;
-    const price = priceRaw !== null && priceRaw !== undefined && priceRaw !== "" 
-      ? parseFloat(priceRaw) 
-      : null;
+      dataRows.forEach(row => {
+        const name = idx.name !== -1 ? row[idx.name]?.toString().trim() || "" : "";
+        const subject = idx.subject !== -1 ? row[idx.subject]?.toString().trim() || "" : "";
+        const grade = idx.grade !== -1 ? row[idx.grade]?.toString().trim() || "" : "";
+        const level = idx.level !== -1 ? row[idx.level]?.toString().trim() || "כללי" : "כללי";
+        const volume = idx.volume !== -1 ? row[idx.volume]?.toString().trim() || "" : "";
+        const publisher = idx.publisher !== -1 ? row[idx.publisher]?.toString().trim() || "" : "";
+        const typeValue = idx.type !== -1 ? row[idx.type]?.toString().trim() || "" : "";
+        const note = idx.note !== -1 ? row[idx.note]?.toString().trim() || "" : "";
 
-    // ✅ כמות במלאי
-    const stockRaw = idx.stockCount !== -1 ? row[idx.stockCount] : null;
-    const stockCount = stockRaw !== null && stockRaw !== undefined && stockRaw !== "" 
-      ? parseInt(stockRaw, 10) 
-      : 0;
+        // מחיר
+        const priceRaw = idx.price !== -1 ? row[idx.price] : null;
+        const price = priceRaw !== null && priceRaw !== undefined && priceRaw !== ""
+          ? parseFloat(priceRaw)
+          : null;
 
-    const alreadyExists = books.some(b =>
-      b.name === name &&
-      b.subject === subject &&
-      b.grade === grade &&
-      b.level === level &&
-      b.volume === volume &&
-      b.publisher === publisher &&
-      b.type === typeValue
-    );
+        // ✅ כמות במלאי
+        const stockRaw = idx.stockCount !== -1 ? row[idx.stockCount] : null;
+        const stockCount = stockRaw !== null && stockRaw !== undefined && stockRaw !== ""
+          ? parseInt(stockRaw, 10)
+          : 0;
 
-    if (name && subject && grade && !alreadyExists) {
-      books.push({
-        id: crypto.randomUUID(),
-        name,
-        subject,
-        grade,
-        level,
-        volume,
-        publisher,
-        type: typeValue,
-        note,
-        price,
-        stockCount   // ✅ שמירה
+        const alreadyExists = books.some(b =>
+          b.name === name &&
+          b.subject === subject &&
+          b.grade === grade &&
+          b.level === level &&
+          b.volume === volume &&
+          b.publisher === publisher &&
+          b.type === typeValue
+        );
+
+        if (name && subject && grade && !alreadyExists) {
+          books.push({
+            id: crypto.randomUUID(),
+            name,
+            subject,
+            grade,
+            level,
+            volume,
+            publisher,
+            type: typeValue,
+            note,
+            price,
+            stockCount   // ✅ שמירה
+          });
+          addedBooks++;
+        }
       });
-      addedBooks++;
-    }
-  });
 
-  showSuccess(`ייבוא ספרים הצליח ✅ נוספו ${addedBooks} ספרים חדשים.`);
-  filterBooks();
-  renderBookTable(1); // ריענון מיידי
-}
+      showSuccess(`ייבוא ספרים הצליח ✅ נוספו ${addedBooks} ספרים חדשים.`);
+      filterBooks();
+      renderBookTable(1); // ריענון מיידי
+    }
 
     saveData();
     filterStudents();
     filterBooks();
-    renderBookTable(1); 
+    renderBookTable(1);
   };
 
   reader.readAsArrayBuffer(event.target.files[0]);
@@ -5163,7 +5162,7 @@ function renderAddBooksList() {
   // ספרים שלא בסט
   const availableBooks = books.filter(b =>
     !cluster.bookIds.includes(b.id) &&
-    (b.name.toLowerCase().includes(search) || (b.subject||'').toLowerCase().includes(search))
+    (b.name.toLowerCase().includes(search) || (b.subject || '').toLowerCase().includes(search))
   );
 
   availableBooks.forEach(book => {
@@ -5205,11 +5204,11 @@ async function addBookToCluster(bookId) {
   fillClusterGradesFromBooks(cluster);
 
   try {
-await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈 במקום _id
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json', ...userIdHeader },
-  body: JSON.stringify(cluster)
-});
+    await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈 במקום _id
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...userIdHeader },
+      body: JSON.stringify(cluster)
+    });
 
     renderClusterTable();
     renderAddBooksList();
@@ -5226,11 +5225,11 @@ async function removeBookFromCluster(bookId) {
   cluster.bookIds = cluster.bookIds.filter(id => id !== bookId);
 
   try {
-await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json', ...userIdHeader },
-  body: JSON.stringify(cluster)
-});
+    await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...userIdHeader },
+      body: JSON.stringify(cluster)
+    });
 
     renderClusterTable();
     renderRemoveBooksList();
@@ -5251,7 +5250,7 @@ function openEditClusterModal(clusterId) {
   editingClusterId = clusterId;
 
   document.getElementById('editClusterName').value = cluster.name;
-  
+
   // נטען תגיות של שכבות גיל
   renderEditClusterGradeTags(cluster.grades);
 
@@ -5341,11 +5340,11 @@ async function saveEditedCluster() {
   const updated = { ...cluster, name: newName, grades: currentEditClusterGrades };
 
   try {
-const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json', ...userIdHeader },
-  body: JSON.stringify(updated)
-});
+    const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...userIdHeader },
+      body: JSON.stringify(updated)
+    });
 
     if (!res.ok) throw new Error("שגיאה בעדכון סט");
 
@@ -5370,10 +5369,10 @@ async function deleteCluster(clusterId) {
   if (!cluster) return alert("❌ לא נמצא הסט למחיקה");
 
   try {
-const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
-  method: 'DELETE',
-  headers: { ...userIdHeader }
-});
+    const res = await fetch(`/api/2026/clusters/${cluster.id}`, {   // 👈
+      method: 'DELETE',
+      headers: { ...userIdHeader }
+    });
 
     if (!res.ok) throw new Error("שגיאה במחיקה");
 
@@ -5432,3 +5431,100 @@ renderStudentTable();
 renderBookTable();
 
 console.log("editBook loaded");
+
+// js for the map
+async function loadGoogleMapAPI() {
+  const res = await fetch('/maps/getAPIKey');
+  const data = await res.json();
+  const googleApiKey = data.key;
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&callback=initMap&loading=async`;
+  script.async = true;
+  document.head.appendChild(script);
+}
+
+loadGoogleMapAPI();
+
+let map, geocoder;
+let markers = [];
+
+async function initMap() {
+  geocoder = new google.maps.Geocoder();
+
+  const defaultLocation = { lat: 31.89205, lng: 34.79928 };
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: defaultLocation, //בית ספר קציר- רחובות 
+    zoom: 16,
+  });
+
+  // טוען היסטוריית חיפושים מהשרת
+  loadSearchHistory();
+}
+
+document.getElementById("addressInput").addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    const address = e.target.value.trim();
+    if (address) {
+      await searchAddress(address);
+      e.target.value = ""; // מנקה את התיבה אחרי חיפוש
+    }
+  }
+});
+
+async function searchAddress(address) {
+  geocoder.geocode({ address }, async (results, status) => {
+    if (status === "OK" && results[0]) {
+      const location = results[0].geometry.location;
+      map.setCenter(location);
+
+      const marker = new google.maps.Marker({
+        map,
+        position: location,
+        title: address,
+      });
+      markers.push(marker);
+
+      // שמירה בבסיס הנתונים
+      await saveAddress(address, location.lat(), location.lng());
+
+      // ריענון היסטוריית החיפושים
+      loadSearchHistory();
+    } else {
+      alert("לא נמצאה הכתובת, נסה שוב");
+    }
+  });
+}
+
+async function loadSearchHistory() {
+  const res = await fetch("/maps/addresses");
+  const addresses = await res.json();
+  const container = document.getElementById("searchHistory");
+  container.innerHTML = "";
+
+  addresses.forEach(addr => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${addr.title}
+      <button onclick="deleteAddress('${addr._id}')">🗑</button>
+    `;
+    container.appendChild(li);
+  });
+}
+
+async function saveAddress(title, lat, lng) {
+  await fetch("/maps/addresses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: title, lat: lat, lng: lng }),
+  });
+}
+
+async function deleteAddress(lat, lng) {
+  await fetch(`/maps/address/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lat: lat, lng: lng }),
+  });
+  loadSearchHistory();
+}
+
