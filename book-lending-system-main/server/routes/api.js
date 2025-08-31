@@ -17,15 +17,54 @@ const Returned = require('../models/Returned');
 const Charge = require('../models/Charge');
 const Volunteer = require('../models/Volunteer');
 const Cluster = require('../models/Cluster');
-//map's model
-const Address = require('../models/Address');
+const Address = require('../models/Address'); // 📍 Address model
 
 // שנה מינימלית לשימוש
 const MIN_YEAR = 2026;
 
-/**
- * Middleware – בדיקת שנה חוקית
- */
+/* ===========================
+   📍 פונקציונליות כתובות
+   =========================== */
+
+// שליפה של כל הכתובות
+router.get('/addresses', async (req, res) => {
+  try {
+    const addresses = await Address.find({});
+    res.json(addresses);
+  } catch (err) {
+    console.error("❌ address list error:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+});
+
+// הוספת כתובת חדשה
+router.post('/addresses', async (req, res) => {
+  try {
+    const { title, lat, lng } = req.body;
+    const result = await Address.create({ title, lat, lng });
+    res.json(result);
+  } catch (err) {
+    console.error("❌ address save error:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+});
+
+// מחיקה לפי _id
+router.delete('/addresses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await Address.findByIdAndDelete(id);
+    if (!result) return res.status(404).json({ error: "Address not found" });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ address delete error:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
+});
+
+/* ===========================
+   Middleware – בדיקת שנה חוקית
+   =========================== */
 function validateYearAccess(req, res, next) {
   const yearParam = req.params.year;
   if (!yearParam) return res.status(400).json({ error: 'שנה לא סופקה' });
@@ -43,36 +82,30 @@ function validateYearAccess(req, res, next) {
 
 router.use('/:year/:collection', validateYearAccess);
 
-/**
- * 🔹 GET /:year/:collection
- * שליפת כל המסמכים לשנה
- */
+/* ===========================
+   CRUD לפי שנה/קולקציה
+   =========================== */
+
+// 🔹 GET /:year/:collection
 router.get('/:year/:collection', async (req, res) => {
   try {
-    const { year, collection } = req.params;   // ✅ נשלף מה־URL
+    const { year, collection } = req.params;
     const Model = getModel(collection);
 
-    if (!Model) {
-      // אין מודל כזה → נחזיר מערך ריק
-      return res.json([]);
-    }
+    if (!Model) return res.json([]);
 
     const data = await Model.find({ year });
-    res.json(Array.isArray(data) ? data : []); // תמיד מחזירים מערך
+    res.json(Array.isArray(data) ? data : []);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ 
-      error: 'שגיאה בשליפת נתונים', 
-      details: err.message 
+    res.status(500).json({
+      error: 'שגיאה בשליפת נתונים',
+      details: err.message
     });
   }
 });
 
-
-/**
- * 🔹 POST /:year/:collection
- * יצירת מסמך חדש
- */
+// 🔹 POST /:year/:collection
 router.post('/:year/:collection', async (req, res) => {
   try {
     const { collection } = req.params;
@@ -80,11 +113,7 @@ router.post('/:year/:collection', async (req, res) => {
     const Model = getModel(collection);
 
     const data = { ...req.body, year };
-
-    // ✅ יצירת id אם חסר
-    if (!data.id) {
-      data.id = uuidv4();
-    }
+    if (!data.id) data.id = uuidv4();
 
     const doc = new Model(data);
     await doc.save();
@@ -95,10 +124,7 @@ router.post('/:year/:collection', async (req, res) => {
   }
 });
 
-/**
- * 🔹 PUT /:year/:collection/:id
- * עדכון מסמך קיים לפי id (לא לפי _id)
- */
+// 🔹 PUT /:year/:collection/:id
 router.put('/:year/:collection/:id', async (req, res) => {
   try {
     const { collection, id } = req.params;
@@ -111,10 +137,7 @@ router.put('/:year/:collection/:id', async (req, res) => {
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({ error: 'לא נמצא לעדכון' });
-    }
-
+    if (!updated) return res.status(404).json({ error: 'לא נמצא לעדכון' });
     res.json(updated);
   } catch (err) {
     console.error("❌ שגיאה בעדכון מסמך:", err);
@@ -122,11 +145,7 @@ router.put('/:year/:collection/:id', async (req, res) => {
   }
 });
 
-
-/**
- * 🔹 PUT /:year/:collection
- * החלפת כל הקולקציה לשנה מסוימת
- */
+// 🔹 PUT /:year/:collection (החלפת קולקציה)
 router.put('/:year/:collection', async (req, res) => {
   try {
     const { collection } = req.params;
@@ -134,18 +153,11 @@ router.put('/:year/:collection', async (req, res) => {
     const Model = getModel(collection);
     const data = req.body;
 
-    if (!Array.isArray(data)) {
-      return res.status(400).json({ error: 'המידע חייב להיות מערך' });
-    }
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'המידע חייב להיות מערך' });
 
     await Model.deleteMany({ year });
-
     const inserted = await Model.insertMany(
-      data.map(d => ({
-        ...d,
-        year,
-        id: d.id || uuidv4(), // ✅ יצירת id אם חסר
-      }))
+      data.map(d => ({ ...d, year, id: d.id || uuidv4() }))
     );
 
     res.json({ success: true, count: inserted.length });
@@ -155,10 +167,7 @@ router.put('/:year/:collection', async (req, res) => {
   }
 });
 
-/**
- * 🔹 DELETE /:year/:collection/:id
- * מחיקת מסמך לפי id
- */
+// 🔹 DELETE /:year/:collection/:id
 router.delete('/:year/:collection/:id', async (req, res) => {
   try {
     const { collection, id } = req.params;
@@ -175,10 +184,7 @@ router.delete('/:year/:collection/:id', async (req, res) => {
   }
 });
 
-/**
- * 🔹 DELETE /:year/:collection
- * מחיקה מרובה לפי ids[]
- */
+// 🔹 DELETE /:year/:collection (מחיקה מרובה)
 router.delete('/:year/:collection', async (req, res) => {
   try {
     const { collection } = req.params;
@@ -191,7 +197,6 @@ router.delete('/:year/:collection', async (req, res) => {
     }
 
     const result = await Model.deleteMany({ year, id: { $in: ids } });
-
     res.json({ success: true, deletedCount: result.deletedCount });
   } catch (err) {
     console.error("❌ שגיאה במחיקה מרובה:", err);
@@ -199,23 +204,20 @@ router.delete('/:year/:collection', async (req, res) => {
   }
 });
 
-/**
- * 🔹 GET /availableYears
- * רשימת שנים זמינות
- */
+/* ===========================
+   🔹 GET /availableYears
+   =========================== */
 router.get('/availableYears', (req, res) => {
   const currentYear = new Date().getFullYear();
   const maxYear = currentYear + 1;
   const years = [];
-  for (let y = MIN_YEAR; y <= maxYear; y++) {
-    years.push(y);
-  }
+  for (let y = MIN_YEAR; y <= maxYear; y++) years.push(y);
   res.json(years);
 });
 
-/**
- * פונקציה פנימית – התאמה בין collection ל־Model
- */
+/* ===========================
+   פונקציה פנימית – התאמת collection למודל
+   =========================== */
 function getModel(collection) {
   switch (collection) {
     case 'students': return Student;
@@ -225,19 +227,20 @@ function getModel(collection) {
     case 'charges': return Charge;
     case 'volunteers': return Volunteer;
     case 'clusters': return Cluster;
-    //map's case
-    case 'Address': return Address;
-    default: return null;  // במקום throw
+    case 'Address':
+    case 'addresses': return Address; // ✅ תמיכה גם בקטן וגם בגדול
+    default: return null;
   }
 }
 
-// routes/api.js
+/* ===========================
+   🔹 סטטיסטיקות
+   =========================== */
 router.get('/:year/stats/:type', async (req, res) => {
   try {
     const { year, type } = req.params;
 
     if (type === 'studentsBySchool') {
-      // כמה תלמידים בכל בי"ס
       const result = await Student.aggregate([
         { $match: { year: parseInt(year) } },
         { $group: { _id: "$school", count: { $sum: 1 } } },
@@ -247,7 +250,6 @@ router.get('/:year/stats/:type', async (req, res) => {
     }
 
     if (type === 'studentsByClass') {
-      // כמה תלמידים בכל כיתה
       const result = await Student.aggregate([
         { $match: { year: parseInt(year) } },
         { $group: { _id: "$classroom", count: { $sum: 1 } } },
@@ -257,7 +259,6 @@ router.get('/:year/stats/:type', async (req, res) => {
     }
 
     if (type === 'booksBySubject') {
-      // כמה ספרים בכל מקצוע
       const result = await Book.aggregate([
         { $match: { year: parseInt(year) } },
         { $group: { _id: "$subject", count: { $sum: 1 } } },
@@ -267,7 +268,6 @@ router.get('/:year/stats/:type', async (req, res) => {
     }
 
     if (type === 'booksByType') {
-      // כמה ספרים בכל סוג
       const result = await Book.aggregate([
         { $match: { year: parseInt(year) } },
         { $group: { _id: "$type", count: { $sum: 1 } } },
@@ -277,56 +277,10 @@ router.get('/:year/stats/:type', async (req, res) => {
     }
 
     res.status(400).json({ error: "Unknown stats type" });
-
   } catch (err) {
     console.error("❌ Stats error:", err);
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
-
-//addresses's functionality
-
-router.post('/address/delete', async (req, res) => {
-  try{
-    const { lat, lng } = req.body;
-    const Model = getModel('Address');
-    const result = await Model.deleteOne({lat: lat, lng: lng});
-    return res.json(result);
-
-  }catch(err){
-    console.error("addresse's delete error:", err);
-    res.status(500).json({ error: "Server error", details: err.message })
-  }
-});
-
-/*
-router.post('/address/save', async (req, res) => {
-  try{
-    const { lat, lng } = req.body;
-    const Model = getModel('Address');
-    const result = await Model.insertOne({lat: lat, lng: lng});
-    return res.json(result);
-
-  }catch(err){
-    console.error("addresse's save error:", err);
-    res.status(500).json({ error: "Server error", details: err.message })
-  }
-});
-*/
-
-router.post('/address/save', async (req, res) => {
-  try {
-    const { title, lat, lng } = req.body;
-    const Model = getModel('Address'); 
-    const result = await Model.create({ title, lat, lng });
-    return res.json(result);
-  } catch (err) {
-    console.error("address save error:", err);
-    res.status(500).json({ error: "Server error", details: err.message });
-  }
-});
-
-router.get('')
-
 
 module.exports = router;
