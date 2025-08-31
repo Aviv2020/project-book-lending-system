@@ -289,7 +289,7 @@ router.get('/:year/stats/:type', async (req, res) => {
 router.post('/address/delete', async (req, res) => {
   try{
     const { lat, lng } = req.body;
-    const Model = getModel('address');
+    const Model = getModel('Address');
     const result = await Model.deleteOne({lat: lat, lng: lng});
     return res.json(result);
 
@@ -299,16 +299,30 @@ router.post('/address/delete', async (req, res) => {
   }
 });
 
+/*
 router.post('/address/save', async (req, res) => {
   try{
     const { lat, lng } = req.body;
-    const Model = getModel('address');
+    const Model = getModel('Address');
     const result = await Model.insertOne({lat: lat, lng: lng});
     return res.json(result);
 
   }catch(err){
     console.error("addresse's save error:", err);
     res.status(500).json({ error: "Server error", details: err.message })
+  }
+});
+*/
+
+router.post('/address/save', async (req, res) => {
+  try {
+    const { title, lat, lng } = req.body;
+    const Model = getModel('Address'); 
+    const result = await Model.create({ title, lat, lng });
+    return res.json(result);
+  } catch (err) {
+    console.error("address save error:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
