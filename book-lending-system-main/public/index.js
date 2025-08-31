@@ -5496,7 +5496,7 @@ async function searchAddress(address) {
 }
 
 async function loadSearchHistory() {
-  const res = await fetch("/maps/addresses");
+  const res = await fetch("/api/addresses");
   const addresses = await res.json();
   const container = document.getElementById("searchHistory");
   container.innerHTML = "";
@@ -5512,19 +5512,16 @@ async function loadSearchHistory() {
 }
 
 async function saveAddress(title, lat, lng) {
-  await fetch("/maps/addresses", {
+  await fetch("/api/addresses", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: title, lat: lat, lng: lng }),
+    body: JSON.stringify({ title, lat, lng }),
   });
 }
 
-async function deleteAddress(lat, lng) {
-  await fetch(`/maps/address/delete`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lat: lat, lng: lng }),
+async function deleteAddress(id) {
+  await fetch(`/api/addresses/${id}`, {
+    method: "DELETE"
   });
   loadSearchHistory();
 }
-
