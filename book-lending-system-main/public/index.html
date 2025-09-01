@@ -143,7 +143,19 @@
       <button class="tab-button" data-tab="booksTab" role="tab" aria-selected="false" aria-controls="booksTab">ניהול מלאי ספרים</button>
       <button class="tab-button" data-tab="clustersTab" role="tab" aria-selected="false" aria-controls="booksTab">ניהול סטים של ספרים</button>
       <button class="tab-button" data-tab="volunteersTab" role="tab" aria-selected="false" aria-controls="volunteersTab">ניהול מתנדבים</button>
-      <button class="tab-button" data-tab="bookStoreTab" role="tab" aria-selected="false" aria-controls="bookStoreTab">איתור חנות ספרים</button>      
+      <button class="tab-button" data-tab="bookStoreTab" role="tab" aria-selected="false" aria-controls="bookStoreTab">איתור חנות ספרים</button>
+      <button class="tab-button" role="tab" onclick="openPopup()">סרטון הסבר</button>          
+    </div>
+
+    
+    <div id="videoPopup" class="popup">
+      <div class="popup-content">
+        <span class="close" onclick="closePopup()">&times;</span>
+        <video controls width="600">
+          <source src="videoP2.mp4" type="video/mp4">
+          הדפדפן שלך לא תומך בסרטונים
+        </video>
+      </div>
     </div>
 
 <div id="successMsg"></div>
