@@ -5446,14 +5446,14 @@ async function loadGoogleMapAPI() {
 loadGoogleMapAPI();
 
 let map, geocoder;
-let markers = [];
+let markers = {}; // id -> marker
 
 async function initMap() {
   geocoder = new google.maps.Geocoder();
 
   const defaultLocation = { lat: 31.89205, lng: 34.79928 };
   map = new google.maps.Map(document.getElementById("map"), {
-    center: defaultLocation, //בית ספר קציר- רחובות 
+    center: defaultLocation,
     zoom: 16,
   });
 
@@ -5477,18 +5477,18 @@ async function searchAddress(address) {
       const location = results[0].geometry.location;
       map.setCenter(location);
 
-      const marker = new google.maps.Marker({
-        map,
-        position: location,
-        title: address,
-      });
-      markers.push(marker);
+      try {
+        // שולחים לשרת לשמירה ומחכים לתשובה
+        const saved = await saveAddress(address, location.lat(), location.lng());
 
-      // שמירה בבסיס הנתונים
-      await saveAddress(address, location.lat(), location.lng());
-
-      // ריענון היסטוריית החיפושים
-      loadSearchHistory();
+        // מוסיפים מרקר אם הצליח
+        if (saved && saved._id) {
+          addMarker(saved._id, saved.title, saved.lat, saved.lng);
+          loadSearchHistory(); // מרענן רשימה בצד
+        }
+      } catch (err) {
+        console.error("❌ שגיאה בשמירת כתובת:", err);
+      }
     } else {
       alert("לא נמצאה הכתובת, נסה שוב");
     }
@@ -5496,33 +5496,70 @@ async function searchAddress(address) {
 }
 
 async function loadSearchHistory() {
-  const res = await fetch("/api/addresses");
-  const addresses = await res.json();
-  const container = document.getElementById("searchHistory");
-  container.innerHTML = "";
+  try {
+    const res = await fetch("/api/addresses");
+    const addresses = await res.json();
+    const container = document.getElementById("searchHistory");
+    container.innerHTML = "";
 
-  addresses.forEach(addr => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      ${addr.title}
-      <button onclick="deleteAddress('${addr._id}')">🗑</button>
-    `;
-    container.appendChild(li);
+    addresses.forEach(addr => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span style="cursor:pointer; color:blue; text-decoration:underline;">
+          ${addr.title}
+        </span>
+        <button onclick="deleteAddress('${addr._id}')">🗑</button>
+      `;
+
+      // בלחיצה על שם כתובת → מזיז את המפה
+      li.querySelector("span").onclick = () => {
+        if (markers[addr._id]) {
+          map.panTo(markers[addr._id].getPosition());
+          map.setZoom(17);
+        }
+      };
+
+      container.appendChild(li);
+
+      // אם אין כבר מרקר לכתובת – נוסיף
+      if (!markers[addr._id]) {
+        addMarker(addr._id, addr.title, addr.lat, addr.lng);
+      }
+    });
+  } catch (err) {
+    console.error("❌ loadSearchHistory error:", err);
+  }
+}
+
+function addMarker(id, title, lat, lng) {
+  const marker = new google.maps.Marker({
+    map,
+    position: { lat, lng },
+    title,
   });
+  markers[id] = marker;
 }
 
 async function saveAddress(title, lat, lng) {
-  await fetch("/api/addresses", {
+  const res = await fetch("/api/addresses", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, lat, lng }),
   });
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+  return res.json();
 }
 
 async function deleteAddress(id) {
-  await fetch(`/api/addresses/${id}`, {
-    method: "DELETE"
-  });
+  await fetch(`/api/addresses/${id}`, { method: "DELETE" });
+
+  if (markers[id]) {
+    markers[id].setMap(null);
+    delete markers[id];
+  }
+
   loadSearchHistory();
 }
 
