@@ -12,16 +12,56 @@ const Charge = require('../models/Charge');
 router.post('/:year', async (req, res) => {
   try {
     const year = parseInt(req.params.year, 10);
+    const { ids } = req.body; // מזהים שנשלחו מהצד לקוח
 
-    // שליפת כל התלמידים לשנה
-    const students = await Student.find({ year });
+    // ✨ בניית כותרות לאקסל
+    const headers = [
+      { header: 'שם מלא', key: 'name' },
+      { header: 'תעודת זהות', key: 'id' },
+      { header: 'בית ספר', key: 'school' },
+      { header: 'כיתה', key: 'classroom' },
+      { header: 'משתתף בפרויקט השאלת ספרים', key: 'inLoanProject' },
+      { header: 'ספרים שהושאלו', key: 'borrowedBooks' },
+      { header: 'ספרים שחויבו', key: 'chargedBooks' },
+      { header: 'חוב כולל (₪)', key: 'totalDebt' }
+    ];
+
+    // ✅ אם אין מזהים – נחזיר אקסל ריק עם כותרות בלבד
+    if (!Array.isArray(ids) || ids.length === 0) {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('תלמידים');
+      sheet.columns = headers.map(h => ({
+        header: h.header,
+        key: h.key,
+        width: h.header.length + 5
+      }));
+
+      // עיצוב כותרות
+      sheet.getRow(1).eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF007BFF' }
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=filtered-students.xlsx');
+      await workbook.xlsx.write(res);
+      return res.end();
+    }
+
+    // ✅ שליפת התלמידים הרלוונטיים
+    const students = await Student.find({ year, id: { $in: ids } });
 
     // שליפת כל ההשאלות, הספרים והחיובים מראש כדי למנוע שאילתות מרובות
     const borrowed = await Borrowed.find({ year });
     const books = await Book.find({ year });
     const charges = await Charge.find({ year });
 
-    // הכנה ל־lookup מהיר
+    // מפות lookup
     const booksMap = new Map(books.map(b => [b.id, b]));
     const chargesByStudent = new Map();
     charges.forEach(c => {
@@ -38,7 +78,6 @@ router.post('/:year', async (req, res) => {
         studentCharges.filter(c => !c.paid).map(c => c.borrowId)
       );
 
-      // ספרים מושאלים שלא הוחזרו ולא חויבו
       const borrowedBooks = borrowed
         .filter(b => b.studentId === student.id && Array.isArray(b.bookIds) && Array.isArray(b.returned))
         .flatMap(b =>
@@ -51,7 +90,6 @@ router.post('/:year', async (req, res) => {
           }).filter(Boolean)
         ).join(', ') || "אין";
 
-      // ספרים שחויבו ולא שולמו
       const unpaidCharges = studentCharges.filter(c => !c.paid);
       const chargedBooks = unpaidCharges.map(c => `${c.bookName} (${c.type})`).join(', ') || "אין";
 
@@ -69,21 +107,9 @@ router.post('/:year', async (req, res) => {
       };
     });
 
-    // בניית אקסל
+    // בניית אקסל עם הנתונים
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('תלמידים');
-
-    const headers = [
-      { header: 'שם מלא', key: 'name' },
-      { header: 'תעודת זהות', key: 'id' },
-      { header: 'בית ספר', key: 'school' },
-      { header: 'כיתה', key: 'classroom' },
-      { header: 'משתתף בפרויקט השאלת ספרים', key: 'inLoanProject' },
-      { header: 'ספרים שהושאלו', key: 'borrowedBooks' },
-      { header: 'ספרים שחויבו', key: 'chargedBooks' },
-      { header: 'חוב כולל (₪)', key: 'totalDebt' }
-    ];
-
     sheet.columns = headers.map(h => ({
       header: h.header,
       key: h.key,
