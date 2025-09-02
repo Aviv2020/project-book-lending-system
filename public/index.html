@@ -43,6 +43,7 @@
   🌙 מצב כהה
 </button>
 </header>
+      <button onclick="openPopup()">סרטון הסבר</button>          
 
 <div id="loadingOverlay" style="
   display:none;
@@ -144,17 +145,19 @@
       <button class="tab-button" data-tab="clustersTab" role="tab" aria-selected="false" aria-controls="booksTab">ניהול סטים של ספרים</button>
       <button class="tab-button" data-tab="volunteersTab" role="tab" aria-selected="false" aria-controls="volunteersTab">ניהול מתנדבים</button>
       <button class="tab-button" data-tab="bookStoreTab" role="tab" aria-selected="false" aria-controls="bookStoreTab">איתור חנות ספרים</button>
-      <button class="tab-button" role="tab" onclick="openPopup()">סרטון הסבר</button>          
     </div>
 
     
     <div id="videoPopup" class="popup">
       <div class="popup-content">
         <span class="close" onclick="closePopup()">&times;</span>
-        <video controls width="600">
-          <source src="videoP2.mp4" type="video/mp4">
-          הדפדפן שלך לא תומך בסרטונים
-        </video>
+<video controls width="640">
+  <source src="book lending system tutorial.mp4" type="video/mp4">
+  הדפדפן שלך לא תומך בתגית וידאו.
+</video>
+
+
+
       </div>
     </div>
 
@@ -300,21 +303,12 @@
   </div>
 </div>
 
-<div id="bulkReturnModal" class="modal">
-  <div class="modal-content">
-    <h3>החזרה מרוכזת</h3>
-    <div id="bulkReturnSelect" style="max-height: 300px; overflow-y: auto;"></div>
-    <button onclick="confirmBulkReturn()">אישור החזרה</button>
-    <button onclick="document.getElementById('bulkReturnModal').style.display='none'">ביטול</button>
-  </div>
-</div>
 
 <div id="studentsTab" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="studentsTab">
 <div class="container">
   <h2>✏️ רשימת תלמידים</h2>
   <div class="filter-buttons">
     <button onclick="openBulkLendModal()">📚 השאלה מרוכזת לכל התלמידים ברשימה</button>
-    <button onclick="openBulkReturnModal()">החזרה מרוכזת עבור השאלות מרוכזות קיימות</button>
   </div>
 
   <div class="filter-section">

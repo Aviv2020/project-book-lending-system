@@ -10,7 +10,8 @@ const chargeSchema = new mongoose.Schema({
   type: { type: String, enum: ['lost', 'damaged', 'other'], required: true }, // סוג החיוב
   date: { type: Date, default: Date.now },     // תאריך יצירת החיוב
 
-  paid: { type: Boolean, default: false },     // האם שולם
+paid: { type: Boolean, default: false },
+paidDate: { type: Date, default: null },
   borrowId: { type: String }                   // מזהה השאלה קשור
 }, {
   timestamps: true

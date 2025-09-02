@@ -8,7 +8,7 @@ router.use('/exportBooks', require('./exportBooks'));
 router.use('/exportStudents', require('./exportStudents'));
 router.use('/export-volunteers', require('./exportVolunteers'));
 router.use('/email', require('./email'));
-
+const mongoose = require('mongoose');
 // ✅ מודלים
 const Student = require('../models/Student');
 const Book = require('../models/Book');
@@ -125,14 +125,24 @@ router.post('/:year/:collection', async (req, res) => {
 });
 
 // 🔹 PUT /:year/:collection/:id
+// 🔹 PUT /:year/:collection/:id
 router.put('/:year/:collection/:id', async (req, res) => {
   try {
     const { collection, id } = req.params;
     const year = req.year;
     const Model = getModel(collection);
 
+    let query;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // אם זה _id חוקי של מונגו
+      query = { _id: id, year };
+    } else {
+      // אחרת נניח שזה ה־UUID שלך
+      query = { id, year };
+    }
+
     const updated = await Model.findOneAndUpdate(
-      { id, year },
+      query,
       { ...req.body, year },
       { new: true }
     );

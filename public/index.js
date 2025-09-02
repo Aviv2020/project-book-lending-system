@@ -496,75 +496,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 let bulkCanvas, bulkCtx;
 
-function openBulkReturnModal() {
-  const container = document.getElementById('bulkReturnSelect');
-  container.innerHTML = '';
-
-  // קיבוץ כל ההשאלות המרוכזות שלא הוחזרו, לפי תאריך וחתימה
-  const activeBulkGroups = [];
-
-  borrowed.forEach(entry => {
-    if (!entry.isBulk) return;
-    if (returned.some(r => r.id === entry.id)) return;
-
-    let group = activeBulkGroups.find(g => g.date === entry.date && g.signature === entry.signature);
-    if (!group) {
-      group = {
-        id: crypto.randomUUID(), // מזהה קבוצתי לצורך בחירה
-        date: entry.date,
-        signature: entry.signature,
-        entries: []
-      };
-      activeBulkGroups.push(group);
-    }
-
-    group.entries.push(entry);
-  });
-
-  activeBulkGroups.forEach(group => {
-    const div = document.createElement('div');
-    div.className = 'bulk-return-option';
-
-    // אוסף את כל שמות הספרים מכל הרשומות בקבוצה, ללא כפילויות
-    const allBookIds = group.entries.flatMap(e => e.bookIds || []);
-    const uniqueBookIds = [...new Set(allBookIds)];
-
-    // מוצאים שמות ספרים לפי מזהים
-    const summaryBooks = uniqueBookIds
-      .map(bookId => {
-        const book = books.find(b => String(b.id) === String(bookId));
-        return book ? book.name : 'ספר לא ידוע';
-      })
-      .join(', ');
-
-    // אוסף את כל שמות התלמידים בקבוצה, ללא כפילויות
-    const uniqueStudentNames = [...new Set(group.entries.map(e => e.student.name))];
-    const summaryStudents = uniqueStudentNames.join(', ');
-
-    div.innerHTML = `
-      <label>
-        <input type="radio" name="bulkReturnGroup" value="${group.id}">
-        <strong>תאריך:</strong> ${new Date(group.date).toLocaleString()}<br>
-        <strong>ספרים:</strong> ${summaryBooks}<br>
-        <strong>תלמידים:</strong> ${summaryStudents}<br>
-        <strong>חתימה:</strong><br>
-        <img src="${group.signature}" style="max-width: 300px; border: 1px solid #ccc;">
-      </label>
-      <hr>
-    `;
-    container.appendChild(div);
-  });
-
-  if (activeBulkGroups.length === 0) {
-    container.innerHTML = '<p>אין השאלות מרוכזות שטרם הוחזרו</p>';
-  }
-
-  // שמירת המבנה בזיכרון זמני (כדי להשתמש ב-confirm)
-  window.bulkReturnGroups = activeBulkGroups;
-
-  document.getElementById('bulkReturnModal').style.display = 'flex';
-}
-
 
 function openBulkLendModal() {
   selectedBulkBookIds = new Set();
@@ -701,60 +632,6 @@ function filterBulkBooks() {
   });
 }
 
-function confirmBulkReturn() {
-  const selected = document.querySelector('input[name=bulkReturnGroup]:checked');
-  if (!selected) return alert("בחר קבוצה להחזרה");
-
-  const groupId = selected.value;
-  const group = (window.bulkReturnGroups || []).find(g => g.id === groupId);
-  if (!group) return alert("שגיאה פנימית – הקבוצה לא נמצאה");
-
-  const now = new Date().toISOString();
-
-  group.entries.forEach(entry => {
-    // מסמנים Boolean בלבד
-    if (entry.returned && Array.isArray(entry.returned)) {
-      for (let i = 0; i < entry.returned.length; i++) {
-        entry.returned[i] = true;
-      }
-    }
-
-    // מוסיפים רשומת החזרה בטבלת Returned
-    returned.push({
-      id: entry.id,
-      student: entry.student,
-      bookIds: entry.bookIds,
-      returnDate: now,
-      bulkReturn: true
-    });
-
-    // החזרת מלאי
-    if (entry.bookIds && Array.isArray(entry.bookIds)) {
-      entry.bookIds.forEach(bookId => {
-        const book = books.find(b => String(b.id) === String(bookId));
-        if (book && 'stockCount' in book) {
-          const currentStock = parseInt(book.stockCount, 10) || 0;
-          book.stockCount = (currentStock + 1).toString();
-        }
-      });
-    }
-
-    // עדכון בשרת
-    fetch(`/api/2026/borrowed/${entry.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...userIdHeader },
-      body: JSON.stringify(entry)
-    }).catch(err => console.error("❌ שגיאה בעדכון החזרה קבוצתית:", err));
-  });
-
-  showSuccess(`הוחזרו ${group.entries.length} ספרים מקבוצה`);
-
-  document.getElementById('bulkReturnModal').style.display = 'none';
-  filterBooks();
-  renderBookTable();
-  renderStudentTable();
-  checkLowStock();
-}
 
 function printStudentCard(index) {
   const student = students[index];
@@ -3173,6 +3050,7 @@ async function deleteFilteredBooks() {
 async function clearStudentDebt(studentId) {
   const now = new Date().toISOString();
   const unpaidCharges = charges.filter(c => c.studentId === studentId && !c.paid);
+  const currentYear = 2026; 
 
   for (const c of unpaidCharges) {
     c.paid = true;
@@ -3182,10 +3060,11 @@ async function clearStudentDebt(studentId) {
     const book = books.find(bk => bk.id === c.bookId);
     const student = students.find(s => s.id === studentId);
 
+    // ✨ יוצרים רשומת החזרה במידה וצריך
     if (borrowEntry && book && student && !returned.some(r => r.id === borrowEntry.id)) {
       const returnEntry = {
         year: currentYear,
-        id: crypto.randomUUID(), // מזהה חדש להחזרה
+        id: crypto.randomUUID(),
         student: {
           id: student.id,
           name: student.name,
@@ -3212,7 +3091,7 @@ async function clearStudentDebt(studentId) {
       returned.push(returnEntry);
 
       try {
-        const res = await fetch(`/api/2026/returned`, {
+        const res = await fetch(`/api/${currentYear}/returned`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...userIdHeader },
           body: JSON.stringify(returnEntry)
@@ -3223,25 +3102,37 @@ async function clearStudentDebt(studentId) {
       }
     }
 
+    // ✨ עדכון/יצירת חיוב
     try {
-      if (c.id) {
-        // עדכון חיוב קיים לפי id
-        const res = await fetch(`/api/2026/charges/${c.id}`, {
+      if (c.id || c._id) {
+        // עדכון חיוב קיים לפי id או _id
+        const identifier = c.id || c._id;
+        const res = await fetch(`/api/${currentYear}/charges/${identifier}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', ...userIdHeader },
           body: JSON.stringify(c)
         });
         if (!res.ok) throw new Error("שגיאה בעדכון חיוב");
       } else {
-        // חיוב חדש → יצירה
-        const res = await fetch(`/api/2026/charges`, {
+        // חיוב חדש → שולחים גוף נקי בלי _id
+        const chargeData = {
+          studentId: c.studentId,
+          bookId: c.bookId,
+          bookName: c.bookName || '',
+          type: c.type || 'other', // חובה לפי הסכמה
+          paid: c.paid,
+          paidDate: c.paidDate,
+          borrowId: c.borrowId
+        };
+
+        const res = await fetch(`/api/${currentYear}/charges`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...userIdHeader },
-          body: JSON.stringify(c)
+          body: JSON.stringify(chargeData)
         });
         if (!res.ok) throw new Error("שגיאה בשמירת חיוב חדש");
         const saved = await res.json();
-        c.id = saved.id; // ✅ לשימוש עתידי
+        c.id = saved.id; // ✅ נשמור את ה־UUID ששרת יצר להבא
       }
     } catch (err) {
       console.error("❌ clearStudentDebt (charge):", err);
