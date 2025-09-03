@@ -1370,59 +1370,9 @@ function renderVolunteerTable(page = 1) {
   }
 }
 
-function exportFilteredVolunteers() {
-  const filteredVolunteers = getFilteredVolunteers(); // אתה צריך להחזיר כאן מערך מתנדבים מסוננים
-
-  if (!filteredVolunteers || filteredVolunteers.length === 0) {
-    alert('אין מתנדבים לייצוא');
-    return;
-  }
-
-  fetch('/api/export-volunteers', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ volunteers: filteredVolunteers })
-  })
-    .then(res => {
-      if (!res.ok) throw new Error('Error exporting volunteers');
-      return res.blob();
-    })
-    .then(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'aggregated-volunteers.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Error exporting volunteers');
-    });
-
-}
 
 function getFilteredVolunteers() {
-  const search = document.getElementById('volunteerTableSearch').value.toLowerCase();
-  const filterGrade = document.getElementById('filterGrade').value;
-  const filterClassroom = document.getElementById('filterClassroom').value.toLowerCase();
-
-  return volunteers.filter(v => {
-    const values = [v.name, v.school, v.classroom, v.notes].map(s => (s || '').toLowerCase());
-
-    const passSearch = !search || values.some(val => val.includes(search));
-
-    const passGrade = !filterGrade || (function () {
-      if (!v.classroom) return false;
-      const regex = new RegExp(`^${filterGrade}[0-9]*$`, 'i');
-      return regex.test(v.classroom);
-    })();
-
-    const passClassroom = !filterClassroom || (v.classroom || '').toLowerCase() === filterClassroom;
-
-    return passSearch && passGrade && passClassroom;
-  });
+  return volunteers
 }
 
 function renderVolunteerPagination(totalPages) {

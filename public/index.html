@@ -966,49 +966,6 @@
   
   <div class="container">
   <h2>✏️ רשימת מתנדבים</h2>
-  <label> סינון מתנדבים:
-    <input id="volunteerTableSearch" placeholder="סנן לפי שם/ת\"ז/כיתה/בי"ס">
-  </label>
-  <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px;">
-  <label>סנן לפי שכבה:
-    <select id="filterGrade" onchange="renderVolunteerTable()">
-      <option value="">הכל</option>
-      <option value="ז">ז</option>
-      <option value="ח">ח</option>
-      <option value="ט">ט</option>
-      <option value="י">י</option>
-      <option value="יא">יא</option>
-      <option value="יב">יב</option>
-    </select>
-  </label>
-
-  <label>סנן לפי כיתה (למשל י3):
-    <input id="filterClassroom" oninput="renderVolunteerTable()" placeholder="כגון: י3" />
-  </label>
-
-  <label>מקצוע לסינון ספרים:
-    <input id="filterSubject" oninput="renderVolunteerTable()" placeholder="כגון: מתמטיקה" />
-  </label>
-
-  <label>רמת לימוד:
-    <select id="filterLevel" onchange="renderVolunteerTable()">
-      <option value="">הכל</option>
-      <option value="3 יחל">3 יח"ל</option>
-      <option value="4 יחל">4 יח"ל</option>
-      <option value="5 יחל">5 יח"ל</option>
-    </select>
-  </label>
-
-  <label>סינון לפי השתתפות בפרויקט:
-  <select id="filterInLoanProject" onchange="renderVolunteerTable()">
-    <option value="">הכל</option>
-    <option value="true">כן</option>
-    <option value="false">לא</option>
-  </select>
-</label>
-
-</div>
-
 
 <div>
   <p id="volunteersTableCount" style="margin: 10px 0; font-weight: bold; text-align: right;">סך הכל: 0 מתנדבים</p>
