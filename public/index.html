@@ -148,18 +148,27 @@
     </div>
 
     
-    <div id="videoPopup" class="popup">
-      <div class="popup-content">
-        <span class="close" onclick="closePopup()">&times;</span>
-<video controls width="640">
-  <source src="book lending system tutorial.mp4" type="video/mp4">
-  הדפדפן שלך לא תומך בתגית וידאו.
-</video>
+<div id="videoPopup" class="popup">
+  <div class="popup-content">
+    <span class="close" onclick="closePopup()">&times;</span>
+    <video id="popupVideo" controls width="640">
+      <source src="book lending system tutorial.mp4" type="video/mp4">
+      הדפדפן שלך לא תומך בתגית וידאו.
+    </video>
+  </div>
+</div>
 
+<script>
+function closePopup() {
+  const popup = document.getElementById("videoPopup");
+  const video = document.getElementById("popupVideo");
 
+  popup.style.display = "none";   // מסתיר את הפופאפ
+  video.pause();                  // עוצר את הווידאו
+  video.currentTime = 0;          // מחזיר להתחלה (רשותי, אם אתה רוצה)
+}
+</script>
 
-      </div>
-    </div>
 
 <div id="successMsg"></div>
 <div id="confirmBorrowModal" style="display:none; position:fixed; top:0; right:0; bottom:0; left:0; background-color:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
