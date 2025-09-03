@@ -6,7 +6,6 @@ const { v4: uuidv4 } = require('uuid');
 // סאב-ראוטרים מיוחדים
 router.use('/exportBooks', require('./exportBooks'));
 router.use('/exportStudents', require('./exportStudents'));
-router.use('/export-volunteers', require('./exportVolunteers'));
 router.use('/email', require('./email'));
 const mongoose = require('mongoose');
 // ✅ מודלים
